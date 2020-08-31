@@ -1,0 +1,1 @@
+CC=C:/Users/admin/AppData/Local/Android/Sdk/ndk/21.3.6528147/toolchains/llvm/prebuilt/windows-x86_64/bin/clang gomobile bind --target android -bundleid com.go-ocf -o ../android/libs/go.ocfclient.gojni.aar
