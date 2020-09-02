@@ -16,15 +16,15 @@ import (
 )
 
 type (
-	// OCFClient for working with devices
-	OCFClient struct {
+	// Ocfclient for working with devices
+	Ocfclient struct {
 		localClient *local.Client
 		// add fields here
 	}
 )
 
 // Initialize creates and initializes new local client
-func (c *OCFClient) Initialize() error {
+func (c *Ocfclient) Initialize() error {
 	appCallback, err := app.NewApp(&app.AppConfig{
 		RootCA: lets,
 		Manufacturer: &app.ManufacturerCerts{
@@ -63,7 +63,7 @@ func (c *OCFClient) Initialize() error {
 }
 
 // Discover devices in the local area
-func (c *OCFClient) Discover() (string, error) {
+func (c *Ocfclient) Discover() (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := c.localClient.GetDevices(ctx, local.WithGetDetails(getCloudConfiguration))
@@ -106,7 +106,7 @@ func getCloudConfiguration(ctx context.Context, device *core.Device, links schem
 }
 
 // OwnDevice transfers the ownersip of the device to user represented by the token
-func (c *OCFClient) OwnDevice(deviceID, token string) error {
+func (c *Ocfclient) OwnDevice(deviceID, token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	ctx = kitGrpc.CtxWithToken(ctx, token)
@@ -119,7 +119,7 @@ func (c *OCFClient) OwnDevice(deviceID, token string) error {
 }
 
 // OnboardDevice registers the device to the Go-OCF Cloud
-func (c *OCFClient) OnboardDevice(deviceID, authorizationProvider, cloudURL, authCode, cloudID string) error {
+func (c *Ocfclient) OnboardDevice(deviceID, authorizationProvider, cloudURL, authCode, cloudID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	err := c.localClient.OnboardDevice(ctx, deviceID, authorizationProvider, cloudURL, authCode, cloudID)
@@ -131,7 +131,7 @@ func (c *OCFClient) OnboardDevice(deviceID, authorizationProvider, cloudURL, aut
 }
 
 // OffboardDevice deregisters the device from the cloud where it's connected to
-func (c *OCFClient) OffboardDevice(deviceID string) error {
+func (c *Ocfclient) OffboardDevice(deviceID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	err := c.localClient.OffboardDevice(ctx, deviceID)
@@ -143,7 +143,7 @@ func (c *OCFClient) OffboardDevice(deviceID string) error {
 }
 
 // DisownDevice removes the current ownership
-func (c *OCFClient) DisownDevice(deviceID string) error {
+func (c *Ocfclient) DisownDevice(deviceID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	err := c.localClient.DisownDevice(ctx, deviceID)
