@@ -16,6 +16,7 @@ class DeviceDetails {
 
   DeviceDetails.fromJson(Map<String, dynamic> json) {
     id = json['ID'];
+
     device =
         json['Device'] != null ? new Device.fromJson(json['Device']) : null;
     isSecured = json['IsSecured'];
@@ -37,12 +38,25 @@ class DeviceDetails {
   }
 }
 
+class LocalizedString {
+  String language;
+  String value;
+  LocalizedString({
+    this.language,
+    this.value,
+  });
+  LocalizedString.fromJson(Map<String, dynamic> json) {
+    language = json['language'];
+    value = json['value'];
+  }
+}
+
 class Device {
   String id;
   List<String> resourceTypes;
   List<String> interfaces;
   String name;
-  String manufacturerName;
+  List<LocalizedString> manufacturerName;
   String modelNumber;
 
   Device(
@@ -58,7 +72,12 @@ class Device {
     resourceTypes = json['rt'].cast<String>();
     interfaces = json['if'].cast<String>();
     name = json['n'];
-    manufacturerName = json['dmn'];
+    if (json['dmn'] != null) {
+      manufacturerName = new List<LocalizedString>();
+      json['dmn'].forEach((v) {
+        manufacturerName.add(new LocalizedString.fromJson(v));
+      });
+    }
     modelNumber = json['dmno'];
   }
 }
@@ -114,7 +133,7 @@ class Resources {
   String deviceID;
   int instanceID;
   String title;
-  String supportedContentTypes;
+  List<String> supportedContentTypes;
 
   Resources(
       {this.id,
