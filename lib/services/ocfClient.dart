@@ -16,19 +16,21 @@ class OCFClient {
     }
     return false;
   }
-  
+
   static Future<List<DeviceDetails>> getDevices() async {
     if (!_isInitialized) {
       print("OCF Client is not initialized");
       return null;
     }
-      var devicesJSON = await _nativeChannel.invokeMethod('discover');
-      var devicesJSONObjs = jsonDecode(devicesJSON) as List;
-      try {
-        return devicesJSONObjs.map((deviceJson) => DeviceDetails.fromJson(deviceJson)).toList();
-      } catch (err) {
-        print(err);
-      }
-      return [];
+    var devicesJSON = await _nativeChannel.invokeMethod('discover');
+    List devicesJSONObjs = jsonDecode(devicesJSON);
+    try {
+      return devicesJSONObjs
+          .map((deviceJson) => DeviceDetails.fromJson(deviceJson))
+          .toList();
+    } catch (err) {
+      print(err);
+    }
+    return [];
   }
 }

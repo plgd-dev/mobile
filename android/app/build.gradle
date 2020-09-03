@@ -59,8 +59,15 @@ flutter {
     source '../..'
 }
 
+repositories {
+    flatDir {
+        dirs './libs'
+    }
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation (name:'ocfclient', ext:'aar')
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
