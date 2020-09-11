@@ -3,7 +3,7 @@ module ocfclient
 go 1.14
 
 require (
-	github.com/go-ocf/kit v0.0.0-20200408211624-bfa7f116ff71
-	github.com/go-ocf/sdk v0.0.0-20200409112144-f306e826ae33
+	github.com/plgd-dev/kit v0.0.0-20200825124924-f07b62fe8d61
+	github.com/plgd-dev/sdk v0.0.0-20200826132138-78beaf9fdc6b
 	golang.org/x/mobile v0.0.0-20200801112145-973feb4309de // indirect
 )

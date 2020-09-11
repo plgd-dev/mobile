@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	kitGrpc "github.com/go-ocf/kit/net/grpc"
-	"github.com/go-ocf/kit/strings"
-	"github.com/go-ocf/sdk/app"
-	"github.com/go-ocf/sdk/local"
-	"github.com/go-ocf/sdk/local/core"
-	"github.com/go-ocf/sdk/schema"
-	"github.com/go-ocf/sdk/schema/cloud"
+	kitGrpc "github.com/plgd-dev/kit/net/grpc"
+	"github.com/plgd-dev/kit/strings"
+	"github.com/plgd-dev/sdk/app"
+	"github.com/plgd-dev/sdk/local"
+	"github.com/plgd-dev/sdk/local/core"
+	"github.com/plgd-dev/sdk/schema"
+	"github.com/plgd-dev/sdk/schema/cloud"
 )
 
 type (
@@ -52,7 +52,7 @@ func (c *Ocfclient) Initialize() error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
-	ctx = kitGrpc.CtxWithToken(ctx, "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlFrWTRNekZHTVRkRk16TXlOME5HUWpFeU9VRkZNekU1UTBaRU1VWXpRVVF4TmtORU5UbEVNZyJ9.eyJpc3MiOiJodHRwczovL2F1dGgucGxnZC5jbG91ZC8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDExNDczNDUzNDcxMjIzMzUwNDE3NSIsImF1ZCI6WyJodHRwczovL3RyeS5wbGdkLmNsb3VkIiwiaHR0cHM6Ly9vY2ZjbG91ZC5ldS5hdXRoMC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNTg2NjM5NzE2LCJleHAiOjE1ODY2NDY5MTYsImF6cCI6ImNZTjNwNmx3TmNObE92dlVoejU1S3ZEWkxRYkplRHI1Iiwic2NvcGUiOiJvcGVuaWQifQ.TnqZzKp06zlsteNK4OrOYDnWPeO01E8hlVtPw2ofI6395taWVw9eBCwBWiiKY0bMy5aJyl1EZKuo2n6mVn7ckMxLeidF_0hGGmvB3nkzrMK0xmUqg4evlec7vghLknfU3w7jYy2SSZsnyZy9S6sXsc05glhov_60kHvIcbMaBWLBZHW026aWGDOxDZYPv__LDrzGvbOVb5tH7iRh14-U7x43Ys-NP5Y8tZMUv5Dp7mJ89QFHG4SlszZcWjtve-JEiBzcjuiT-NjsQ1CuIuYc3h35a3Xuihy-MHCWgIgqYIDGCqk6FoXfK7HtxuTEV8AGpWwpDyr_M0HcFBTF_kQ4ag")
+	ctx = kitGrpc.CtxWithToken(ctx, "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IlFrWTRNekZHTVRkRk16TXlOME5HUWpFeU9VRkZNekU1UTBaRU1VWXpRVVF4TmtORU5UbEVNZyJ9.eyJpc3MiOiJodHRwczovL2F1dGgucGxnZC5jbG91ZC8iLCJzdWIiOiJhdXRoMHw1YzczZDk1MmM0ZjhmYjU1NzUxYWYzYjQiLCJhdWQiOlsiaHR0cHM6Ly90cnkucGxnZC5jbG91ZCIsImh0dHBzOi8vb2NmY2xvdWQuZXUuYXV0aDAuY29tL3VzZXJpbmZvIl0sImlhdCI6MTU5OTExNzA4MiwiZXhwIjoxNTk5MTI0MjgyLCJhenAiOiJjWU4zcDZsd05jTmxPdnZVaHo1NUt2RFpMUWJKZURyNSIsInNjb3BlIjoib3BlbmlkIn0.U5hQHUUPdBQUGqc09pFjkmOqJMUw7FwjaJrlYX6_Ehpoqzhi24Md24H9gj2vD_pN6NLlNl9C7hSCJLvWCkwZfSlpIMjZkS_B2DDYiNI_G0jyTwwtpkk3uLOrA9bEL8I-HtndWfVLJOBLPOBZAkZJ4MkDE71U-_cepwXOQKjtZKP3oRlafcPw-NUVGtIlizJNetJVtx0yMmDKvfiow8LztXcfhMBWznktCAHvtAfhSj10-w4dt7BDxhwzwVaDBT7BYQxFRKsR0tEud_gju2p7LHiFLXiFOWplM8QRaIEYeugY0W46L0GWreK_iMNdZfPdM7SHrIpzjavXxyWJbUVEXw")
 	err = localClient.Initialization(ctx)
 	if err != nil {
 		return err
