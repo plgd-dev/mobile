@@ -1,5 +1,5 @@
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:my_app/appConstants.dart';
+import 'package:client/appConstants.dart';
 
 class ToastMessage {
   static void show(String text) {

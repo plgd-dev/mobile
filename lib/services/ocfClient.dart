@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:my_app/components/oauthHandler.dart';
-import 'package:my_app/models/cloudConfiguration.dart';
-import 'package:my_app/models/device.dart';
+import 'package:client/components/oauthHandler.dart';
+import 'package:client/models/cloudConfiguration.dart';
+import 'package:client/models/device.dart';
 
 import '../globals.dart';
 

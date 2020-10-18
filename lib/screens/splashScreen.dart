@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:my_app/components/toastMessage.dart';
-import 'package:my_app/services/ocfClient.dart';
+import 'package:client/components/toastMessage.dart';
+import 'package:client/services/ocfClient.dart';
 
 import '../appConstants.dart';
 import '../main.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/appConstants.dart';
+import 'package:client/appConstants.dart';
 import '../main.dart';
 
 class TopBar extends AppBar {

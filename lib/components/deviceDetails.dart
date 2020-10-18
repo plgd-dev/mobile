@@ -4,9 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:my_app/appConstants.dart';
-import 'package:my_app/models/device.dart';
-import 'package:my_app/services/ocfClient.dart';
+import 'package:client/appConstants.dart';
+import 'package:client/models/device.dart';
+import 'package:client/services/ocfClient.dart';
 
 class DeviceDetails extends StatefulWidget {
   DeviceDetails({Key key, this.device}) : super(key: key);

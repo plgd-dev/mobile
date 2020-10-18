@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/appConstants.dart';
-import 'package:my_app/screens/devicesScreen.dart';
-import 'package:my_app/screens/setupScreen.dart';
-import 'package:my_app/screens/splashScreen.dart';
-import 'package:my_app/services/ocfClient.dart';
+import 'package:client/appConstants.dart';
+import 'package:client/screens/devicesScreen.dart';
+import 'package:client/screens/setupScreen.dart';
+import 'package:client/screens/splashScreen.dart';
+import 'package:client/services/ocfClient.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 

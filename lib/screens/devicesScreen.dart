@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:my_app/components/deviceDetails.dart';
-import 'package:my_app/components/topBar.dart';
-import 'package:my_app/models/device.dart';
-import 'package:my_app/services/ocfClient.dart';
+import 'package:client/components/deviceDetails.dart';
+import 'package:client/components/topBar.dart';
+import 'package:client/models/device.dart';
+import 'package:client/services/ocfClient.dart';
 import '../appConstants.dart';
 
 class DevicesScreen extends StatefulWidget {

@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/io_client.dart';
-import 'package:my_app/components/toastMessage.dart';
-import 'package:my_app/models/cloudConfiguration.dart';
-import 'package:my_app/services/ocfClient.dart';
+import 'package:client/components/toastMessage.dart';
+import 'package:client/models/cloudConfiguration.dart';
+import 'package:client/services/ocfClient.dart';
 
 import '../appConstants.dart';
 

@@ -1,4 +1,4 @@
-package com.example.my_app
+package dev.plgd.client
 
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
@@ -7,7 +7,7 @@ import io.flutter.plugins.GeneratedPluginRegistrant
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
-    private val CHANNEL = "gocf.dev/sdk"
+    private val CHANNEL = "plgd.dev/sdk"
     private var sdkClient: ocfclient.Ocfclient_? = null;
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {

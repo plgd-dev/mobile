@@ -4,15 +4,15 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-ocf/kit/security"
-	"github.com/go-ocf/sdk/schema/acl"
 	"github.com/plgd-dev/kit/codec/json"
 	kitGrpc "github.com/plgd-dev/kit/net/grpc"
+	"github.com/plgd-dev/kit/security"
 	"github.com/plgd-dev/kit/strings"
 	"github.com/plgd-dev/sdk/app"
 	"github.com/plgd-dev/sdk/local"
 	"github.com/plgd-dev/sdk/local/core"
 	"github.com/plgd-dev/sdk/schema"
+	"github.com/plgd-dev/sdk/schema/acl"
 	"github.com/plgd-dev/sdk/schema/cloud"
 )
 
