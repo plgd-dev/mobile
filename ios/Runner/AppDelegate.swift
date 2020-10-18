@@ -9,7 +9,7 @@ import Ocfclient
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-    let goChannel = FlutterMethodChannel(name: "gocf.dev/sdk", binaryMessenger: controller.binaryMessenger)
+    let goChannel = FlutterMethodChannel(name: "plgd.dev/sdk", binaryMessenger: controller.binaryMessenger)
 
     goChannel.setMethodCallHandler({
       (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
@@ -17,6 +17,7 @@ import Ocfclient
         case "initialize": self.initializeOCFClient(args: call.arguments, result: result)
         case "discoverDevices": self.discoverDevices(args: call.arguments, result: result)
         case "ownDevice": self.ownDevice(args: call.arguments, result: result)
+        case "setAccessForCloud": self.setAccessForCloud(args: call.arguments, result: result)
         case "onboardDevice": self.onboardDevice(args: call.arguments, result: result)
         case "offboardDevice": self.offboardDevice(args: call.arguments, result: result)
         case "disownDevice": self.disownDevice(args: call.arguments, result: result)
@@ -28,14 +29,13 @@ import Ocfclient
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
-    let ocfClient = OcfclientOCFClient();
-    private func initializeOCFClient(args: Any?,
-                                     result: FlutterResult) {
+    let ocfClient = OcfclientOcfclient();
+    private func initializeOCFClient(args: Any?, result: FlutterResult) {
         let args = args as! [String: String]
         do {
-            try ocfClient.initialize(args["accessToken"])
+            try ocfClient.initialize(args["accessToken"], cloudConfiguration: args["cloudConfiguration"])
         } catch {
-            result(error)
+            result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
         }
         result(true)
     }
@@ -52,20 +52,33 @@ import Ocfclient
     
     private func ownDevice(args: Any?, result: FlutterResult) {
         let args = args as! [String: String]
+        var error : NSError?
+        let deviceId = ocfClient.ownDevice(args["deviceID"], accessToken: args["accessToken"], error: &error)
+        if (error != nil) {
+            result(FlutterError(code: "FAILED", message: error!.localizedDescription, details: nil))
+            return;
+        }
+        result(deviceId)
+    }
+    
+    private func setAccessForCloud(args: Any?, result: FlutterResult) {
+        let args = args as! [String: String]
         do {
-            try ocfClient.ownDevice(args["deviceID"], accessToken: args["accessToken"])
+            try ocfClient.setAccessForCloud(args["deviceID"])
         } catch {
             result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
         }
+        result(true)
     }
     
     private func onboardDevice(args: Any?, result: FlutterResult) {
         let args = args as! [String: String]
         do {
-            try ocfClient.onboardDevice(args["deviceID"], authorizationProvider: args["authorizationProvider"], cloudURL: args["cloudURL"], authCode: args["authCode"], cloudID: args["cloudID"])
+            try ocfClient.onboardDevice(args["deviceID"], authCode: args["authCode"])
         } catch {
             result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
         }
+        result(true)
     }
     
     private func offboardDevice(args: Any?, result: FlutterResult) {
@@ -75,6 +88,7 @@ import Ocfclient
         } catch {
             result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
         }
+        result(true)
     }
     
     private func disownDevice(args: Any?, result: FlutterResult) {
@@ -84,6 +98,7 @@ import Ocfclient
         } catch {
             result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
         }
+        result(true)
     }
 }
 

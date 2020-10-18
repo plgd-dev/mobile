@@ -1,31 +1,56 @@
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:my_app/components/oauthHandler.dart';
+import 'package:my_app/models/cloudConfiguration.dart';
 import 'package:my_app/models/device.dart';
+
+import '../globals.dart';
 
 class OCFClient {
   static final String cloudConfigurationStorageKey = "plgd.dev/cloud-configuration";
-  static final MethodChannel _nativeChannel = MethodChannel('gocf.dev/sdk');
+  static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/sdk');
   static bool _isInitialized = false;
   static String _accessToken = "";
+  static CloudConfiguration _cloudConfiguration;
 
-  static void setTokenResponse(String tokenResponse) {
-    Map<String, dynamic> jsonResponse = jsonDecode(tokenResponse);
-    _accessToken = jsonResponse['access_token'];
+  static CloudConfiguration get cloudConfiguration {
+    if (_cloudConfiguration == null && Globals.localStorage.containsKey(cloudConfigurationStorageKey)) {
+      var jsonConfiguration = Globals.localStorage.getString(OCFClient.cloudConfigurationStorageKey);
+      _cloudConfiguration = CloudConfiguration.fromJson(jsonConfiguration);
+    }
+    return _cloudConfiguration;
   }
 
-  static Future initialize() async {
+  static set cloudConfiguration(CloudConfiguration cloudConfiguration) {
+    _cloudConfiguration = cloudConfiguration;
+  }
+
+  static Future<bool> initialize(String tokenResponse) async {
+    _accessToken = _parseAccessToken(tokenResponse);
+    if (_accessToken == null || cloudConfiguration == null)
+      return false;
+    _isInitialized = await _nativeChannel.invokeMethod("initialize", <String, String> {
+      'accessToken': _accessToken,
+      'cloudConfiguration': _cloudConfiguration.rawJson
+    });
+    if (_isInitialized)
+      await _persistCloudConfiguration(cloudConfiguration);
+    return _isInitialized;
+  }
+
+  static String _parseAccessToken(String tokenResponse) {
     try {
-      await _nativeChannel.invokeMethod("initialize", <String, String> {
-        'accessToken': _accessToken
-      });
-      _isInitialized = true;
-    } catch (err) { 
-      print(err);
+      Map<String, dynamic> jsonResponse = jsonDecode(tokenResponse);
+      return jsonResponse['access_token'] as String;
+    } on Exception catch (_) {
+      return null;
     }
   }
 
-  static bool isInitialized() {
-    return _isInitialized;
+  static Future _persistCloudConfiguration(CloudConfiguration cloudConfiguration) async {
+    await Globals.localStorage.setString(OCFClient.cloudConfigurationStorageKey, cloudConfiguration.rawJson);
   }
 
   static void destroy() {
@@ -34,85 +59,114 @@ class OCFClient {
   
   static Future<List<Device>> discoverDevices() async {
     if (!_isInitialized) {
-      print("OCF Client is not initialized");
-      var devices = new List<Device>();
-      devices.add(Device(id: '6416e890-b919-4d64-b966-51cefab527a7', cloudConfiguration: CloudConfiguration(provisioningStatus: 'Registered'), modelNumber: '1-312iond', name: 'Haier AI Speaker', manufacturerName: 'Haier', resourceTypes: ['x.com.kistler.a', 'oic.wk.d'], isSecured: true, ownership: Ownership(owned: true, deviceOwner: "123")));
-      devices.add(Device(id: 'f8d7b4df-b254-4275-bd66-dcacbd5cb05e', name: 'Lynx MiND', isSecured: false, ownership: Ownership(owned: false)));
-      devices.add(Device(id: '1c6a7ddd-1b6b-420b-9495-127ff0a43663', name: 'Alegro 100', isSecured: true, ownership: Ownership(owned: false)));
-      devices.add(Device(id: '4d106c12-e19b-421a-961b-304387baf7fd', name: 'Legrand Light Dimmer', isSecured: true, ownership: Ownership(owned: true, deviceOwner: "")));
-      devices.add(Device(id: '99920fc4-ea81-4b38-9cc6-adda68ffda5c', name: 'LG InstaView ThinQ', isSecured: true, ownership: Ownership(owned: false)));
-      return devices;
+      throw("OCF Client not initialized");
     }
 
-    try {
-      int timeoutSeconds = 15;
-      var devicesJSON = await _nativeChannel.invokeMethod('discoverDevices', timeoutSeconds);
-      var devicesJSONObjs = jsonDecode(devicesJSON) as List;
-      return devicesJSONObjs.map((deviceJson) => Device.fromJson(deviceJson)).toList();
-    } catch (err) {
-      print(err);
-    }
-    return [];
+    var devicesJSON = await _nativeChannel.invokeMethod('discoverDevices', 5);
+    var devicesJSONObjs = jsonDecode(devicesJSON) as List;
+    return devicesJSONObjs.map((deviceJson) => Device.fromJson(deviceJson)).toList();
   }
   
-  static Future ownDevice(String deviceID) async {
+  static Future<String> ownDevice(String deviceID) async {
     if (!_isInitialized) {
-      print("OCF Client is not initialized");
-      return null;
+      throw("OCF Client not initialized");
     }
-    try {
-      var res = await _nativeChannel.invokeMethod('ownDevice', <String, String> {
-        'deviceID': deviceID,
-        'accessToken': _accessToken
-      });
-    } catch (err) {
-      print(err);
-    }
+
+    return await _nativeChannel.invokeMethod<String>('ownDevice', <String, String> {
+      'deviceID': deviceID,
+      'accessToken': _accessToken
+    });
   }
 
-  static Future onboardDevice(String deviceID, String authorizationProvider, String cloudURL, String authCode, String cloudID) async {
+  static Future setAccessForCloud(String deviceID) async {
     if (!_isInitialized) {
-      print("OCF Client is not initialized");
-      return null;
+      throw("OCF Client not initialized");
     }
-    try {
-      await _nativeChannel.invokeMethod('onboardDevice', <String, String> {
-        'deviceID': deviceID,
-        'authorizationProvider': authorizationProvider,
-        'cloudURL': cloudURL,
-        'authCode': authCode ?? "",
-        'cloudID': cloudID
-      });
-    } catch (err) {
-      print(err);
+
+    return await _nativeChannel.invokeMethod('setAccessForCloud', <String, String> {
+      'deviceID': deviceID
+    });
+  }
+
+  static Future onboardDevice(String deviceID, String authCode) {
+    if (!_isInitialized) {
+      throw("OCF Client not initialized");
     }
+
+    return _nativeChannel.invokeMethod('onboardDevice', <String, String> {
+      'deviceID': deviceID,
+      'authCode': authCode ?? ""
+    });
   }
 
   static Future offboardDevice(String deviceID) async {
     if (!_isInitialized) {
-      print("OCF Client is not initialized");
-      return null;
+      throw("OCF Client not initialized");
     }
-    try {
-      await _nativeChannel.invokeMethod('offboardDevice', <String, String> {
-        'deviceID': deviceID
-      });
-    } catch (err) {
-      print(err);
-    }
+
+    await _nativeChannel.invokeMethod('offboardDevice', <String, String> {
+      'deviceID': deviceID
+    });
   }
 
   static Future disownDevice(String deviceID) async {
     if (!_isInitialized) {
-      print("OCF Client is not initialized");
-      return null;
+      throw("OCF Client not initialized");
     }
-    try {
-      await _nativeChannel.invokeMethod('disownDevice', <String, String> {
-        'deviceID': deviceID,
-      });
-    } catch (err) {
-      print(err);
-    }
+    
+    await _nativeChannel.invokeMethod('disownDevice', <String, String> {
+      'deviceID': deviceID,
+    });
+  }
+
+  static Widget getTokenRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed) =>
+     _getOAuthWidget(cloudConfiguration?.accessTokenUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed);
+
+  static Widget getCodeRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed) =>
+    _getOAuthWidget(cloudConfiguration?.authCodeUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed);
+
+  static Widget _getOAuthWidget(String actionUrl, BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed) {
+    return Visibility(
+      visible: visible,
+      maintainState: tryInBackground,
+      child: OAuthHandler(
+        authUrl: actionUrl,
+        promptForCredentials: () => _showLoginModal(actionUrl, context, onCompleted, onLoginPromtDismissed),
+        authCompleted: onCompleted
+      )
+    );
+  }
+
+  static void _showLoginModal(String actionUrl, BuildContext context, Function onCompleted, Function onLoginPromtDismissed) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.95,
+        child: Container(
+          margin: const EdgeInsets.only(top: 5, left: 15, right: 15),
+          child: Stack(
+            alignment: AlignmentDirectional.topCenter,
+            children: [
+              Container(
+                height: 3,
+                width: 40,
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.all(Radius.circular(50))
+                )
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 7),
+                child: OAuthHandler(
+                  authUrl: actionUrl,
+                  authCompleted: onCompleted
+                )
+              )
+            ]
+          )
+        )
+      )
+    ).whenComplete(onLoginPromtDismissed);
   }
 }

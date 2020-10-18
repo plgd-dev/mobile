@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:my_app/components/deviceList.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:my_app/components/deviceDetails.dart';
 import 'package:my_app/components/topBar.dart';
 import 'package:my_app/models/device.dart';
 import 'package:my_app/services/ocfClient.dart';
@@ -15,6 +16,7 @@ class DevicesScreen extends StatefulWidget {
 }
 
 class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateMixin {
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = new GlobalKey<RefreshIndicatorState>();
   List<Device> _deviceList = new List<Device>();
 
   @override
@@ -75,8 +77,14 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
           Container(
             child: Center(
               child: RefreshIndicator(
+                key: _refreshIndicatorKey,
                 displacement: 150,
-                child: DeviceList(devices: _deviceList),
+                child: ListView.builder(
+                  itemCount: _deviceList.length,
+                  itemBuilder: (context, index) {
+                    return _getSlidable(_deviceList, index);
+                  }
+                ),
                 onRefresh: _refreshDevices,
               )
             ),
@@ -86,12 +94,60 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
     );
   }
 
+  Widget _getSlidable(List<Device> devices, int index) {
+    var device = devices[index];
+    return Slidable(
+      key: Key(device.id),
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      child: ListTile(
+        title: _getListTitle(device),
+        subtitle: Text('${device.id}'),
+        onTap: () async {
+          var refreshDevices = await showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            isDismissible: false,
+            enableDrag: false,
+            backgroundColor: Colors.transparent,
+            builder: (context) => FractionallySizedBox(
+              heightFactor: 1,
+              child: DeviceDetails(device: device)
+            )
+          );
+          if (refreshDevices == true)
+            _refreshIndicatorKey.currentState.show();
+        }
+      )
+    );
+  }
+
+  Widget _getListTitle(Device device) {
+    if (device.ownershipStatus == 'readytobeowned') {
+      return Row(
+        children: [
+          Icon(Icons.fiber_new_rounded, size: 25, color: AppConstants.yellowMainColor),
+          Text(' ${device.name}')
+        ]
+      );
+    } else if (device.ownershipStatus == 'owned') {
+      return Row(
+        children: [
+          Icon(Icons.lock_outline, size: 20, color: Colors.green),
+          Text(' ${device.name}')
+        ]
+      );
+    }
+    return Row(
+      children: [
+        Icon(Icons.lock_outline, size: 20, color: Colors.red),
+        Text(' ${device.name}')
+      ]
+    );
+  }
+
   Future _refreshDevices() async {
     try {
-      if (!OCFClient.isInitialized()) {
-        await OCFClient.initialize();
-      }
-      
       var devices = await OCFClient.discoverDevices();
       setState(() {
         _deviceList = devices;

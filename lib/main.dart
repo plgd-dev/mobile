@@ -7,12 +7,14 @@ import 'package:my_app/services/ocfClient.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import 'globals.dart';
+
 bool _isSetupRequired = true;
 
 Future main() async {
     WidgetsFlutterBinding.ensureInitialized();
-    var storage = await SharedPreferences.getInstance();
-    _isSetupRequired = !storage.containsKey(OCFClient.cloudConfigurationStorageKey);
+    Globals.localStorage = await SharedPreferences.getInstance();
+    _isSetupRequired = !Globals.localStorage.containsKey(OCFClient.cloudConfigurationStorageKey);
     runApp(MyApp());
 }
 

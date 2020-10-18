@@ -7,7 +7,8 @@ class Device {
   String modelNumber;
   bool isSecured;
   Ownership ownership;
-  CloudConfiguration cloudConfiguration;
+  String ownershipStatus;
+  CloudResourceConfiguration cloudConfiguration;
   List<Resources> resources;
   List<Endpoints> endpoints;
 
@@ -20,10 +21,11 @@ class Device {
       this.modelNumber,
       this.isSecured,
       this.ownership,
+      this.ownershipStatus,
       this.cloudConfiguration,
       this.resources,
       this.endpoints});
-  
+
   bool isOwnedBy(String ownerId) {
     if (!this.isSecured || !this.ownership.owned) {
       return false;
@@ -32,13 +34,6 @@ class Device {
       return false;
     }
     return true;
-  }
-
-  bool isOnboardable() {
-    return
-      this.cloudConfiguration == null ||
-      this.cloudConfiguration.provisioningStatus != 'registering' ||
-      this.cloudConfiguration.provisioningStatus != 'registered';
   }
 
   Device.fromJson(Map<String, dynamic> json) {
@@ -58,7 +53,8 @@ class Device {
     }
     isSecured = json['IsSecured'];
     ownership = json['Ownership'] != null ? new Ownership.fromJson(json['Ownership']) : null;
-    cloudConfiguration = json['Details'] != null ? new CloudConfiguration.fromJson(json['Details']) : null;
+    ownershipStatus = json['OwnershipStatus'];
+    cloudConfiguration = json['Details'] != null ? new CloudResourceConfiguration.fromJson(json['Details']) : null;
     if (json['Resources'] != null) {
       resources = new List<Resources>();
       json['Resources'].forEach((v) {
@@ -115,16 +111,16 @@ class Ownership {
   }
 }
 
-class CloudConfiguration {
+class CloudResourceConfiguration {
 	String authorizationProvider;
 	String cloudID;
 	String cloudURL;
 	int lastErrorCode;
 	String provisioningStatus;
 
-	CloudConfiguration({this.authorizationProvider, this.cloudID, this.cloudURL, this.lastErrorCode, this.provisioningStatus});
+	CloudResourceConfiguration({this.authorizationProvider, this.cloudID, this.cloudURL, this.lastErrorCode, this.provisioningStatus});
 
-	CloudConfiguration.fromJson(Map<String, dynamic> json) {
+	CloudResourceConfiguration.fromJson(Map<String, dynamic> json) {
 		authorizationProvider = json['apn'];
 		cloudID = json['sid'];
 		cloudURL = json['cis'];

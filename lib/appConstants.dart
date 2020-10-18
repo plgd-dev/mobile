@@ -9,6 +9,7 @@ class AppConstants {
   static const String customEndpointButtonCancel = 'Cancel';
   static const String invalidEndpoint = 'Invalid endpoint';
   static const String unableToFetchConfiguration = 'Unable to fetch configuration';
+  static const String unableToInitializeClient = 'Error occured during initialization';
   static const String messageUnableToPersistConfiguration = 'Unable to persist configuration';
   static const String buttonOnboard = 'ONBOARD';
   static const String buttonFactoryReset = 'FACTORY RESET';

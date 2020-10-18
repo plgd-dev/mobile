@@ -1,15 +1,16 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:http/http.dart' as http;
-import 'package:my_app/components/oauthHandler.dart';
+import 'package:http/io_client.dart';
 import 'package:my_app/components/toastMessage.dart';
 import 'package:my_app/models/cloudConfiguration.dart';
 import 'package:my_app/services/ocfClient.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../appConstants.dart';
 
 class SetupScreen extends StatefulWidget {
@@ -20,8 +21,7 @@ class SetupScreen extends StatefulWidget {
 class _SetupState extends State<SetupScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _setupInProgress = false;
-  bool _tryAuthInBackground = false;
-  CloudConfiguration _cloudConfiguration;
+  bool _tryGetTokenInBackground = false;
 
   @override
   initState() {
@@ -99,15 +99,7 @@ class _SetupState extends State<SetupScreen> {
                 )
               )
             ),
-            Visibility(
-              visible: false,
-              maintainState: _tryAuthInBackground,
-              child: OAuthHandler(
-                authUrl: _cloudConfiguration?.accessTokenUrl,
-                promptForCredentials: _showLoginModal,
-                authCompleted: _onAuthCompleted
-              )
-            )
+            OCFClient.getTokenRequestWidget(context, false, _tryGetTokenInBackground, _initializeOCFClient, _restartSetup)
           ]
         )
       )
@@ -120,8 +112,10 @@ class _SetupState extends State<SetupScreen> {
     });
 
     String configurationResponse;
+    var httpClient = HttpClient()..badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
+    var ioClient = new IOClient(httpClient);  
     try {
-      var response = await http.get(cloudEndpoint).timeout(const Duration(seconds: 10));
+      var response = await ioClient.get(cloudEndpoint).timeout(const Duration(seconds: 10));
       configurationResponse = response.body;
     } on TimeoutException catch (_) {
       ToastMessage.show(AppConstants.unableToFetchConfiguration);
@@ -139,59 +133,30 @@ class _SetupState extends State<SetupScreen> {
       return;
     }
 
+    OCFClient.cloudConfiguration = CloudConfiguration.fromJson(configurationResponse);
     setState(() {
-      _cloudConfiguration = CloudConfiguration.fromJson(configurationResponse);
-      _tryAuthInBackground = true;
+      _tryGetTokenInBackground = true;
     });
   }
 
-  Future _onAuthCompleted(String response) async {
-    var storage = await SharedPreferences.getInstance();
-    var configurationStored = await storage.setString(OCFClient.cloudConfigurationStorageKey, _cloudConfiguration.rawJson);
-    if (!configurationStored) {
-      ToastMessage.show(AppConstants.messageUnableToPersistConfiguration);
+  Future _initializeOCFClient(String response) async {
+    var isInitialized = await OCFClient.initialize(response);
+    if (!isInitialized) {
+      setState(() {
+        _setupInProgress = false;
+        _tryGetTokenInBackground = false;
+      });
+      ToastMessage.show(AppConstants.unableToInitializeClient);
+      return;
     }
-
-    OCFClient.setTokenResponse(response);
     Navigator.of(context).pushNamedAndRemoveUntil('/devices', (route) => false);
   }
 
-  void _showLoginModal() {
-    showModalBottomSheet(
-      isScrollControlled: true,
-      context: context,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.95,
-        child: Container(
-          margin: const EdgeInsets.only(top: 5, left: 15, right: 15),
-          child: Stack(
-            alignment: AlignmentDirectional.topCenter,
-            children: [
-              Container(
-                height: 3,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: Colors.black38,
-                  borderRadius: BorderRadius.all(Radius.circular(50))
-                )
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 7),
-                child: OAuthHandler(
-                  authUrl: _cloudConfiguration.accessTokenUrl,
-                  authCompleted: _onAuthCompleted
-                )
-              )
-            ]
-          )
-        )
-      )
-    ).whenComplete(() => 
-      setState(() {
-        _setupInProgress = false;
-        _tryAuthInBackground = false;
-      })
-    );
+  void _restartSetup() {
+    setState(() {
+      _setupInProgress = false;
+      _tryGetTokenInBackground = false;
+    });
   }
 
   Future _showCustomEndpointDialog() async {

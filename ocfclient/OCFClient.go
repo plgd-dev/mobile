@@ -2,44 +2,45 @@ package ocfclient
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
-	kitGrpc "github.com/go-ocf/kit/net/grpc"
-	"github.com/go-ocf/kit/strings"
-	"github.com/go-ocf/sdk/app"
-	"github.com/go-ocf/sdk/local"
-	"github.com/go-ocf/sdk/local/core"
-	"github.com/go-ocf/sdk/schema"
-	"github.com/go-ocf/sdk/schema/cloud"
+	"github.com/go-ocf/kit/security"
+	"github.com/go-ocf/sdk/schema/acl"
+	"github.com/plgd-dev/kit/codec/json"
+	kitGrpc "github.com/plgd-dev/kit/net/grpc"
+	"github.com/plgd-dev/kit/strings"
+	"github.com/plgd-dev/sdk/app"
+	"github.com/plgd-dev/sdk/local"
+	"github.com/plgd-dev/sdk/local/core"
+	"github.com/plgd-dev/sdk/schema"
+	"github.com/plgd-dev/sdk/schema/cloud"
 )
 
 type (
-	// OCFClient for working with devices
-	OCFClient struct {
-		localClient *local.Client
+	// Ocfclient for working with devices
+	Ocfclient struct {
+		localClient        *local.Client
+		cloudConfiguration map[string]interface{}
 	}
 )
 
 // Initialize creates and initializes new local client
-func (c *OCFClient) Initialize(accessToken, cloudConfiguration string) error {
+func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
+	json.Decode([]byte(cloudConfiguration), &c.cloudConfiguration)
 	appCallback, err := app.NewApp(&app.AppConfig{
-		RootCA: lets + rootCa,
+		RootCA: lets + "\n" + c.cloudConfiguration["cloud_certificate_authorities"].(string),
 	})
 	localClient, err := local.NewClientFromConfig(&local.Config{
 		DisablePeerTCPSignalMessageCSMs:   true,
 		KeepAliveConnectionTimeoutSeconds: 1,
 		ObserverPollingIntervalSeconds:    1,
 		DeviceOwnershipBackend: &local.DeviceOwnershipBackendConfig{
-			AccessTokenURL:       "https://portal.try.plgd.cloud/api/authz/token",
-			AuthCodeURL:          "https://portal.try.plgd.cloud/api/authz/code",
-			JWTClaimOwnerID:      "sub",
-			SigningServerAddress: "try.plgd.cloud:443",
+			AccessTokenURL:                  c.cloudConfiguration["access_token_url"].(string),
+			AuthCodeURL:                     c.cloudConfiguration["auth_code_url"].(string),
+			SigningServerAddress:            c.cloudConfiguration["signing_server_address"].(string),
+			AcquireManufacturerCertificates: true,
 		},
-	}, appCallback, func(err error) {
-		fmt.Println(err)
-	})
+	}, appCallback, func(err error) {})
 	if err != nil {
 		return err
 	}
@@ -57,13 +58,17 @@ func (c *OCFClient) Initialize(accessToken, cloudConfiguration string) error {
 }
 
 // Discover devices in the local area
-func (c *OCFClient) Discover(timeoutSeconds int) (string, error) {
+func (c *Ocfclient) Discover(timeoutSeconds int) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
 	defer cancel()
 	res, err := c.localClient.GetDevices(ctx, local.WithGetDetails(getCloudConfiguration))
 	if err != nil {
 		return "", err
 	}
+
+	defer func() {
+		_ = c.localClient.Close(context.Background())
+	}()
 
 	devices := []local.DeviceDetails{}
 	for _, device := range res {
@@ -72,7 +77,7 @@ func (c *OCFClient) Discover(timeoutSeconds int) (string, error) {
 		}
 	}
 
-	devicesJSON, err := json.Marshal(devices)
+	devicesJSON, err := json.Encode(devices)
 	if err != nil {
 		return "", err
 	}
@@ -97,49 +102,99 @@ func getCloudConfiguration(ctx context.Context, device *core.Device, links schem
 }
 
 // OwnDevice transfers the ownersip of the device to user represented by the token
-func (c *OCFClient) OwnDevice(deviceID, accessToken string) error {
+func (c *Ocfclient) OwnDevice(deviceID, accessToken string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	ctx = kitGrpc.CtxWithToken(ctx, accessToken)
-	err := c.localClient.OwnDevice(ctx, deviceID)
+	newDeviceID, err := c.localClient.OwnDevice(ctx, deviceID)
 	if err != nil {
-		fmt.Println(err)
+		return "", err
+	}
+	return newDeviceID, nil
+}
+
+// SetAccessForCloud sets required ACL for the Cloud
+func (c *Ocfclient) SetAccessForCloud(deviceID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	d, links, err := c.localClient.GetRefDevice(ctx, deviceID)
+	if err != nil {
+		return err
+	}
+
+	defer d.Release(ctx)
+	p, err := d.Provision(ctx, links)
+	if err != nil {
+		return err
+	}
+	defer p.Close(ctx)
+
+	link, err := core.GetResourceLink(links, "/oic/sec/acl2")
+	if err != nil {
+		return err
+	}
+
+	setAcl := acl.UpdateRequest{
+		AccessControlList: []acl.AccessControl{
+			acl.AccessControl{
+				Permission: acl.AllPermissions,
+				Subject: acl.Subject{
+					Subject_Device: &acl.Subject_Device{
+						DeviceID: c.cloudConfiguration["cloud_id"].(string),
+					},
+				},
+				Resources: acl.AllResources,
+			},
+		},
+	}
+
+	err = p.UpdateResource(ctx, link, setAcl, nil)
+	if err != nil {
+		return err
+	}
+	caCert := []byte(c.cloudConfiguration["cloud_certificate_authorities"].(string))
+	certs, err := security.ParseX509FromPEM(caCert)
+	if err != nil {
+		return err
+	}
+	err = p.AddCertificateAuthority(ctx, c.cloudConfiguration["cloud_id"].(string), certs[0])
+	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// OnboardDevice registers the device to the Go-OCF Cloud
-func (c *OCFClient) OnboardDevice(deviceID, authorizationProvider, cloudURL, authCode, cloudID string) error {
+// OnboardDevice registers the device to the plgd cloud
+func (c *Ocfclient) OnboardDevice(deviceID, authCode string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
+	authorizationProvider := c.cloudConfiguration["cloud_authorization_provider"].(string)
+	cloudURL := c.cloudConfiguration["cloud_url"].(string)
+	cloudID := c.cloudConfiguration["cloud_id"].(string)
 	err := c.localClient.OnboardDevice(ctx, deviceID, authorizationProvider, cloudURL, authCode, cloudID)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil
 }
 
 // OffboardDevice deregisters the device from the cloud where it's connected to
-func (c *OCFClient) OffboardDevice(deviceID string) error {
+func (c *Ocfclient) OffboardDevice(deviceID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	err := c.localClient.OffboardDevice(ctx, deviceID)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil
 }
 
 // DisownDevice removes the current ownership
-func (c *OCFClient) DisownDevice(deviceID string) error {
+func (c *Ocfclient) DisownDevice(deviceID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	err := c.localClient.DisownDevice(ctx, deviceID)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil
@@ -176,17 +231,4 @@ oyi3B43njTOQ5yOf+1CceWxG1bQVs5ZufpsMljq4Ui0/1lvh+wjChP4kqKOJ2qxq
 4RgqsahDYVvTH9w7jXbyLeiNdd8XM2w9U/t7y0Ff/9yi0GE44Za4rF2LN9d11TPA
 mRGunUHBcnWEvgJBQl9nJEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57d
 emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
------END CERTIFICATE-----`
-
-const rootCa = `
------BEGIN CERTIFICATE-----
-MIIBhDCCASmgAwIBAgIQdAMxveYP9Nb48xe9kRm3ajAKBggqhkjOPQQDAjAxMS8w
-LQYDVQQDEyZPQ0YgQ2xvdWQgUHJpdmF0ZSBDZXJ0aWZpY2F0ZXMgUm9vdCBDQTAe
-Fw0xOTExMDYxMjAzNTJaFw0yOTExMDMxMjAzNTJaMDExLzAtBgNVBAMTJk9DRiBD
-bG91ZCBQcml2YXRlIENlcnRpZmljYXRlcyBSb290IENBMFkwEwYHKoZIzj0CAQYI
-KoZIzj0DAQcDQgAEaNJi86t5QlZiLcJ7uRMNlcwIpmFiJf9MOqyz2GGnGVBypU6H
-lwZHY2/l5juO/O4EH2s9h3HfcR+nUG2/tFzFEaMjMCEwDgYDVR0PAQH/BAQDAgEG
-MA8GA1UdEwEB/wQFMAMBAf8wCgYIKoZIzj0EAwIDSQAwRgIhAM7gFe39UJPIjIDE
-KrtyPSIGAk0OAO8txhow1BAGV486AiEAqszg1fTfOHdE/pfs8/9ZP5gEVVkexRHZ
-JCYVaa2Spbg=
 -----END CERTIFICATE-----`
