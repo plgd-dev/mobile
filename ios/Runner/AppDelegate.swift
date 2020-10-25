@@ -19,7 +19,6 @@ import Ocfclient
         case "ownDevice": self.ownDevice(args: call.arguments, result: result)
         case "setAccessForCloud": self.setAccessForCloud(args: call.arguments, result: result)
         case "onboardDevice": self.onboardDevice(args: call.arguments, result: result)
-        case "offboardDevice": self.offboardDevice(args: call.arguments, result: result)
         case "disownDevice": self.disownDevice(args: call.arguments, result: result)
         default: result(FlutterMethodNotImplemented)
         }
@@ -75,16 +74,6 @@ import Ocfclient
         let args = args as! [String: String]
         do {
             try ocfClient.onboardDevice(args["deviceID"], authCode: args["authCode"])
-        } catch {
-            result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
-        }
-        result(true)
-    }
-    
-    private func offboardDevice(args: Any?, result: FlutterResult) {
-        let args = args as! [String: String]
-        do {
-            try ocfClient.offboardDevice(args["deviceID"])
         } catch {
             result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
         }

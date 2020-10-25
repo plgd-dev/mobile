@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/io_client.dart';
-import 'package:client/components/toastMessage.dart';
+import 'package:client/components/toastNotification.dart';
 import 'package:client/models/cloudConfiguration.dart';
 import 'package:client/services/ocfClient.dart';
 
@@ -118,7 +118,7 @@ class _SetupState extends State<SetupScreen> {
       var response = await ioClient.get(cloudEndpoint).timeout(const Duration(seconds: 10));
       configurationResponse = response.body;
     } on TimeoutException catch (_) {
-      ToastMessage.show(AppConstants.unableToFetchConfiguration);
+      ToastNotification.show(context, AppConstants.unableToFetchConfiguration);
       setState(() {
         _setupInProgress = false;
       });
@@ -126,7 +126,7 @@ class _SetupState extends State<SetupScreen> {
     }
 
     if (!CloudConfiguration.isValid(configurationResponse)) {
-      ToastMessage.show(AppConstants.unableToFetchConfiguration);
+      ToastNotification.show(context, AppConstants.invalidConfiguration);
       setState(() {
         _setupInProgress = false;
       });
@@ -141,15 +141,15 @@ class _SetupState extends State<SetupScreen> {
 
   Future _initializeOCFClient(String response) async {
     var isInitialized = await OCFClient.initialize(response);
-    if (!isInitialized) {
+    if (isInitialized) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/devices', (route) => false);
+    } else {
       setState(() {
         _setupInProgress = false;
         _tryGetTokenInBackground = false;
       });
-      ToastMessage.show(AppConstants.unableToInitializeClient);
-      return;
+      ToastNotification.show(context, AppConstants.unableToInitializeClient);
     }
-    Navigator.of(context).pushNamedAndRemoveUntil('/devices', (route) => false);
   }
 
   void _restartSetup() {

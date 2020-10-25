@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:client/appConstants.dart';
 import 'package:client/screens/devicesScreen.dart';
@@ -15,7 +17,15 @@ Future main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Globals.localStorage = await SharedPreferences.getInstance();
     _isSetupRequired = !Globals.localStorage.containsKey(OCFClient.cloudConfigurationStorageKey);
-    runApp(MyApp());
+    runZonedGuarded(
+      () => runApp(MyApp()),
+      (error, stackTrace) async {
+        await Globals.sentry.captureException(
+          exception: error,
+          stackTrace: stackTrace,
+        );
+      },
+    );
 }
 
 class MyApp extends StatelessWidget {
@@ -52,3 +62,15 @@ class MyApp extends StatelessWidget {
     Navigator.of(context).pushNamedAndRemoveUntil('/setup', (route) => false);
   }
 }
+
+// void main() async {
+//   runZonedGuarded(
+//     () => runApp(MyApp()),
+//     (error, stackTrace) {
+//       await sentry.captureException(
+//         exception: error,
+//         stackTrace: stackTrace,
+//       );
+//     },
+//   );
+// }

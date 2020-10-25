@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+import '../appConstants.dart';
 
 class OAuthHandler extends StatefulWidget {
   final String authUrl;
@@ -18,6 +21,7 @@ class _OAuthHandlerState extends State<OAuthHandler> {
   final Function(String) authCompleted;
   String authOrigin;
   WebViewController _controller;
+  bool _loadingInProgress = false;
 
   _OAuthHandlerState(this.authUrl, this.promptForCredentials, this.authCompleted);
 
@@ -31,25 +35,45 @@ class _OAuthHandlerState extends State<OAuthHandler> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        return WebView(
-          initialUrl: authUrl,
-          userAgent: "Mozilla/5.0 Google",
-          javascriptMode: JavascriptMode.unrestricted,
-          onWebViewCreated: (WebViewController webViewController) {
-            _controller = webViewController;
-          },
-          javascriptChannels: <JavascriptChannel>[
-            _extractData(context),
-          ].toSet(),
-          onPageFinished: (String url) {
-            if (url.startsWith(authOrigin)) { 
-              // in case redirect url is requested, expected content will be already present
-              _controller.evaluateJavascript("(function(){OAuth.postMessage(document.documentElement.innerText)})();");
-            } else if (!url.contains('/authorize?')) { // other url, not OAuth2.0 related requests user authentication
-              this.promptForCredentials();
-            }
-          },
-          gestureNavigationEnabled: true,
+        return Stack(
+          children: [
+            Visibility(
+              visible: _loadingInProgress,
+              maintainState: true,
+              child: SpinKitRing(color: AppConstants.blueMainColor, size: 30, lineWidth: 2.0)
+            ),
+            Visibility(
+              visible: !_loadingInProgress,
+              maintainState: true,
+              child: WebView(
+                initialUrl: authUrl,
+                userAgent: "Mozilla/5.0 Google",
+                javascriptMode: JavascriptMode.unrestricted,
+                onWebViewCreated: (WebViewController webViewController) {
+                  _controller = webViewController;
+                },
+                javascriptChannels: <JavascriptChannel>[
+                  _extractData(context),
+                ].toSet(),
+                onPageFinished: (String url) {
+                  // in case redirect url is requested, expected content will be already present
+                  if (url.startsWith(authOrigin)) { 
+                    _controller.evaluateJavascript("(function(){OAuth.postMessage(document.documentElement.innerText)})();");
+                    return;
+                  }
+
+                  // other url, not OAuth2.0 related are promting user to login
+                  if (!url.contains('/authorize?')) {
+                    setState(() { _loadingInProgress = false; });
+                    this.promptForCredentials();
+                    return;
+                  }
+                },
+                onPageStarted: (_) => { setState(() { _loadingInProgress = true; }) },
+                gestureNavigationEnabled: true,
+              )
+            )
+          ]
         );
       }
     );

@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:client/components/toastMessage.dart';
+import 'package:client/components/toastNotification.dart';
 import 'package:client/services/ocfClient.dart';
 
 import '../appConstants.dart';
@@ -56,15 +56,16 @@ class _SplashState extends State<SplashScreen> {
 
   Future _initializeOCFClient(String response) async {
     var isInitialized = await OCFClient.initialize(response);
-    if (!isInitialized) {
-      ToastMessage.show(AppConstants.unableToInitializeClient);
-      Navigator.of(context).pushNamedAndRemoveUntil('/setup', (route) => false);
-      return;
+    if (isInitialized) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/devices', (route) => false);
+    } else {
+      await MyApp.reset(context);
+      ToastNotification.show(context, AppConstants.unableToInitializeClientSetupRedirect);
     }
-    Navigator.of(context).pushNamedAndRemoveUntil('/devices', (route) => false);
   }
 
   void _showResetAppConfigurationDialog() {
+    setState(() { _tryGetTokenInBackground = false; });
     showDialog(
       context: context,
       builder: (context) {

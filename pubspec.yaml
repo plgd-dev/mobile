@@ -3,18 +3,18 @@ description: The plgd.dev mobile client for onboarding of OCF enabled devices.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.10.2 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_slidable: "^0.5.7"
+  flutter_slidable: ^0.5.7
   webview_flutter: ^1.0.0
   shared_preferences: ^0.5.10
   http: ^0.12.2
-  flutter_spinkit: "^4.1.2+1"
-  fluttertoast: ^7.1.1
-  cupertino_icons: ^1.0.0
+  flutter_spinkit: ^4.1.2+1
+  flushbar: ^1.10.4
+  sentry: ^3.0.1
 
 dev_dependencies:
   flutter_test:

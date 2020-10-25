@@ -18,7 +18,6 @@ class MainActivity: FlutterActivity() {
                 "discover" -> this.discoverDevices(result)
                 "own" -> this.ownDevice(call.arguments(), result)
                 "onboard" -> this.onboardDevice(call.arguments(), result)
-                "offboard" -> this.offboardDevice(call.arguments(), result)
                 "disown" -> this.disownDevice(call.arguments(), result)
                 else -> result.notImplemented()
             }
@@ -60,15 +59,6 @@ class MainActivity: FlutterActivity() {
     private fun onboardDevice(args: Map<String,String>?, result: MethodChannel.Result) {
         try {
             sdkClient!!.onboardDevice(args!!["deviceID"], args!!["authorizationProvider"], args!!["cloudURL"], args!!["authCode"], args["cloudID"])
-            result.success(Any())
-        } catch (e: Exception) {
-            result.error("-1", e.message, "")
-        }
-    }
-
-    private fun offboardDevice(args: Map<String,String>?, result: MethodChannel.Result) {
-        try {
-            sdkClient!!.offboardDevice(args!!["deviceID"])
             result.success(Any())
         } catch (e: Exception) {
             result.error("-1", e.message, "")

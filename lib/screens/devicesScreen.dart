@@ -1,11 +1,13 @@
 import 'dart:async';
+
+import 'package:client/components/toastNotification.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:client/components/deviceDetails.dart';
 import 'package:client/components/topBar.dart';
 import 'package:client/models/device.dart';
 import 'package:client/services/ocfClient.dart';
+
 import '../appConstants.dart';
 
 class DevicesScreen extends StatefulWidget {
@@ -22,21 +24,8 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
   @override
   initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 2);
-    _tabController.addListener(onTap);
-  }
-
-  @override
-    void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-  
-  TabController _tabController;
-  onTap() {
-    if (_tabController.index == 1) {
-      setState(() { _tabController.index = 0; });
-    }
+    if (_deviceList.isEmpty)
+      WidgetsBinding.instance.addPostFrameCallback((_) => _refreshIndicatorKey.currentState.show());
   }
   
   @override
@@ -45,34 +34,11 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
       extendBodyBehindAppBar: true,
       appBar: TopBar(context, AppConstants.devicesScreenTitle,
         showLogout: true,
-        // TODO: uncomment when remote devices will be supported
-        // bottom: TabBar(
-        //   isScrollable: false,
-        //   indicatorWeight: 4.0,
-        //   controller: _tabController,
-        //   onTap: (int _index) {
-        //     if (_index == 1) {
-        //       setState(() { _tabController.index = 0; });
-        //     }
-        //   },
-        //   tabs: <Widget>[
-        //     Text('LOCAL', style: TextStyle(color: Colors.white, fontFamily: AppConstants.topBarFont)),
-        //     Row(children: <Widget>[
-        //       Spacer(),
-        //       Text('REMOTE   ', style: TextStyle(color: Colors.grey, fontFamily: AppConstants.topBarFont)),
-        //       Expanded(
-        //         child: Align(
-        //           alignment: Alignment.centerLeft,
-        //           child: Icon(Icons.lock, size: 13,)
-        //         ),
-        //       )
-        //     ])
-        //   ]
-        // )
       ),
-      body: TabBarView(
+      body: DefaultTabController(
+        length: 1,
+        child: TabBarView(
         physics: NeverScrollableScrollPhysics(),
-        controller: _tabController,
         children: <Widget>[
           Container(
             child: Center(
@@ -88,9 +54,9 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
                 onRefresh: _refreshDevices,
               )
             ),
-          ),
-          Text('not available')
+          )
         ])
+      )
     );
   }
 
@@ -147,13 +113,13 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
   }
 
   Future _refreshDevices() async {
-    try {
-      var devices = await OCFClient.discoverDevices();
-      setState(() {
-        _deviceList = devices;
-      });
-    } on PlatformException catch (e) {
-      print("PlatformException: ${e.message}");
+    var devices = await OCFClient.discoverDevices();
+    if (devices == null) {
+      ToastNotification.show(context, AppConstants.unableToDiscoverDevices);
+      return;
     }
+    setState(() {
+      _deviceList = devices;
+    });
   }
 }

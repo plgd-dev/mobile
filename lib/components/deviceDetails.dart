@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
+import 'package:client/components/toastNotification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -41,7 +41,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
             padding: EdgeInsets.only(bottom: 10, left: 15, right: 15),
             child: _getActionButton(this.widget.device)
           ),
-          OCFClient.getCodeRequestWidget(context, false, _tryGetCodeInBackground, (response) => _onboardDevice(response, context), _cancelOnboarding)
+          OCFClient.getCodeRequestWidget(context, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding)
         ]
       )
     );
@@ -65,11 +65,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
       return _getFlatButton(
         Colors.red,
         Colors.red.withAlpha(120),
-        () async {
-          setState(() { _userRequestInProgress = true; });
-          await OCFClient.disownDevice(device.id);
-          Navigator.of(context).pop(true);
-        },
+        () async => await _factoryReset(),
         AppConstants.buttonFactoryReset,
         Icons.cloud_off
       );
@@ -104,13 +100,41 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
     );
   }
 
-  void _onboardDevice(String response, BuildContext context) async {
+  void _onboard(String response, BuildContext context) async {
     var deviceID = await OCFClient.ownDevice(this.widget.device.id);
-    await OCFClient.setAccessForCloud(deviceID);
+    if (deviceID == null) {
+      _cancelOnboarding();
+      ToastNotification.show(context, AppConstants.unableToSetDeviceOwnership);
+      return;
+    }
+
+    if (!await OCFClient.setAccessForCloud(deviceID)) {
+      _cancelOnboarding();
+      ToastNotification.show(context, AppConstants.unableToSetCloudACL);
+      return;
+    }
+
     Map<String, dynamic> jsonResponse = jsonDecode(response);
     String authCode = jsonResponse['code'];
-    await OCFClient.onboardDevice(deviceID, authCode);
+    if (!await OCFClient.onboardDevice(deviceID, authCode)) {
+      _cancelOnboarding();
+      ToastNotification.show(context, AppConstants.unableToOnboard);
+      return;
+    }
+
+    await Future.delayed(const Duration(seconds: 13));
     Navigator.of(context).pop(true);
+  }
+
+  Future _factoryReset() async {
+    setState(() { _userRequestInProgress = true; });
+    if (!await OCFClient.disownDevice(this.widget.device.id)) {
+      setState(() { _userRequestInProgress = false; });
+      ToastNotification.show(context, AppConstants.unableToDisown);
+    } else {
+      await Future.delayed(const Duration(seconds: 3));
+      Navigator.of(context).pop(true);
+    }
   }
 
   void _cancelOnboarding() {

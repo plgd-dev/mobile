@@ -11,6 +11,7 @@ import '../globals.dart';
 class OCFClient {
   static final String cloudConfigurationStorageKey = "plgd.dev/cloud-configuration";
   static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/sdk');
+
   static bool _isInitialized = false;
   static String _accessToken = "";
   static CloudConfiguration _cloudConfiguration;
@@ -31,10 +32,18 @@ class OCFClient {
     _accessToken = _parseAccessToken(tokenResponse);
     if (_accessToken == null || cloudConfiguration == null)
       return false;
-    _isInitialized = await _nativeChannel.invokeMethod("initialize", <String, String> {
-      'accessToken': _accessToken,
-      'cloudConfiguration': _cloudConfiguration.rawJson
-    });
+    try {
+      await _nativeChannel.invokeMethod("initialize", <String, String> {
+        'accessToken': _accessToken,
+        'cloudConfiguration': _cloudConfiguration.rawJson
+      });
+      _isInitialized = true;
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
     if (_isInitialized)
       await _persistCloudConfiguration(cloudConfiguration);
     return _isInitialized;
@@ -59,12 +68,19 @@ class OCFClient {
   
   static Future<List<Device>> discoverDevices() async {
     if (!_isInitialized) {
-      throw("OCF Client not initialized");
+      throw Exception("OCF Client not initialized");
     }
-
-    var devicesJSON = await _nativeChannel.invokeMethod('discoverDevices', 5);
-    var devicesJSONObjs = jsonDecode(devicesJSON) as List;
-    return devicesJSONObjs.map((deviceJson) => Device.fromJson(deviceJson)).toList();
+    try {
+      var devicesJSON = await _nativeChannel.invokeMethod('discoverDevices', 5);
+      var devicesJSONObjs = jsonDecode(devicesJSON) as List;
+      return devicesJSONObjs.map((deviceJson) => Device.fromJson(deviceJson)).toList();
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return null;
   }
   
   static Future<String> ownDevice(String deviceID) async {
@@ -72,51 +88,73 @@ class OCFClient {
       throw("OCF Client not initialized");
     }
 
-    return await _nativeChannel.invokeMethod<String>('ownDevice', <String, String> {
-      'deviceID': deviceID,
-      'accessToken': _accessToken
-    });
+    try {
+      return await _nativeChannel.invokeMethod<String>('ownDevice', <String, String> {
+        'deviceID': deviceID,
+        'accessToken': _accessToken
+      });
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return null;
   }
 
-  static Future setAccessForCloud(String deviceID) async {
+  static Future<bool> setAccessForCloud(String deviceID) async {
     if (!_isInitialized) {
       throw("OCF Client not initialized");
     }
-
-    return await _nativeChannel.invokeMethod('setAccessForCloud', <String, String> {
-      'deviceID': deviceID
-    });
+    try {
+      await _nativeChannel.invokeMethod('setAccessForCloud', <String, String> {
+        'deviceID': deviceID
+      });
+      return true;
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return false;
   }
 
-  static Future onboardDevice(String deviceID, String authCode) {
+  static Future<bool> onboardDevice(String deviceID, String authCode) async {
     if (!_isInitialized) {
       throw("OCF Client not initialized");
     }
-
-    return _nativeChannel.invokeMethod('onboardDevice', <String, String> {
-      'deviceID': deviceID,
-      'authCode': authCode ?? ""
-    });
+    try {
+      await _nativeChannel.invokeMethod('onboardDevice', <String, String> {
+        'deviceID': deviceID,
+        'authCode': authCode ?? ""
+      });
+      return true;
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
+    return false;
   }
 
-  static Future offboardDevice(String deviceID) async {
+  static Future<bool> disownDevice(String deviceID) async {
     if (!_isInitialized) {
       throw("OCF Client not initialized");
     }
-
-    await _nativeChannel.invokeMethod('offboardDevice', <String, String> {
-      'deviceID': deviceID
-    });
-  }
-
-  static Future disownDevice(String deviceID) async {
-    if (!_isInitialized) {
-      throw("OCF Client not initialized");
+    try {
+      await _nativeChannel.invokeMethod('disownDevice', <String, String> {
+        'deviceID': deviceID,
+      });
+      return true;
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        exception: error,
+        stackTrace: stackTrace,
+      );
     }
-    
-    await _nativeChannel.invokeMethod('disownDevice', <String, String> {
-      'deviceID': deviceID,
-    });
+    return false;
   }
 
   static Widget getTokenRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed) =>
@@ -137,8 +175,8 @@ class OCFClient {
     );
   }
 
-  static void _showLoginModal(String actionUrl, BuildContext context, Function onCompleted, Function onLoginPromtDismissed) {
-    showModalBottomSheet(
+  static void _showLoginModal(String actionUrl, BuildContext context, Function(String) onCompleted, Function onLoginPromtDismissed) {
+    showModalBottomSheet<String> (
       isScrollControlled: true,
       context: context,
       builder: (context) => FractionallySizedBox(
@@ -160,13 +198,20 @@ class OCFClient {
                 padding: EdgeInsets.only(top: 7),
                 child: OAuthHandler(
                   authUrl: actionUrl,
-                  authCompleted: onCompleted
+                  authCompleted: (data) {
+                    onCompleted(data);
+                    Navigator.of(context).pop('true'); // nullable boolean available only as an experimental feature
+                  }
                 )
               )
             ]
           )
         )
       )
-    ).whenComplete(onLoginPromtDismissed);
+    ).then((String isAutoClosed) {
+      if (isAutoClosed != 'true') {
+        onLoginPromtDismissed();
+      }
+    });
   }
 }

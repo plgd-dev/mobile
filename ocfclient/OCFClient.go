@@ -32,8 +32,9 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 	})
 	localClient, err := local.NewClientFromConfig(&local.Config{
 		DisablePeerTCPSignalMessageCSMs:   true,
-		KeepAliveConnectionTimeoutSeconds: 1,
+		KeepAliveConnectionTimeoutSeconds: 10,
 		ObserverPollingIntervalSeconds:    1,
+		DeviceCacheExpirationSeconds:      3600,
 		DeviceOwnershipBackend: &local.DeviceOwnershipBackendConfig{
 			AccessTokenURL:                  c.cloudConfiguration["access_token_url"].(string),
 			AuthCodeURL:                     c.cloudConfiguration["auth_code_url"].(string),
@@ -61,7 +62,7 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 func (c *Ocfclient) Discover(timeoutSeconds int) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
 	defer cancel()
-	res, err := c.localClient.GetDevices(ctx, local.WithGetDetails(getCloudConfiguration))
+	res, err := c.localClient.GetDevices(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +104,7 @@ func getCloudConfiguration(ctx context.Context, device *core.Device, links schem
 
 // OwnDevice transfers the ownersip of the device to user represented by the token
 func (c *Ocfclient) OwnDevice(deviceID, accessToken string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	ctx = kitGrpc.CtxWithToken(ctx, accessToken)
 	newDeviceID, err := c.localClient.OwnDevice(ctx, deviceID)
@@ -115,7 +116,7 @@ func (c *Ocfclient) OwnDevice(deviceID, accessToken string) (string, error) {
 
 // SetAccessForCloud sets required ACL for the Cloud
 func (c *Ocfclient) SetAccessForCloud(deviceID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	d, links, err := c.localClient.GetRefDevice(ctx, deviceID)
 	if err != nil {
@@ -166,23 +167,12 @@ func (c *Ocfclient) SetAccessForCloud(deviceID string) error {
 
 // OnboardDevice registers the device to the plgd cloud
 func (c *Ocfclient) OnboardDevice(deviceID, authCode string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	authorizationProvider := c.cloudConfiguration["cloud_authorization_provider"].(string)
 	cloudURL := c.cloudConfiguration["cloud_url"].(string)
 	cloudID := c.cloudConfiguration["cloud_id"].(string)
 	err := c.localClient.OnboardDevice(ctx, deviceID, authorizationProvider, cloudURL, authCode, cloudID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// OffboardDevice deregisters the device from the cloud where it's connected to
-func (c *Ocfclient) OffboardDevice(deviceID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-	err := c.localClient.OffboardDevice(ctx, deviceID)
 	if err != nil {
 		return err
 	}
