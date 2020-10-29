@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:client/appLocalizations.dart';
 import 'package:client/components/toastNotification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -32,7 +33,7 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: TopBar(context, AppConstants.devicesScreenTitle,
+      appBar: TopBar(context, AppLocalizations.of(context).devicesScreenTitle,
         showLogout: true,
       ),
       body: DefaultTabController(
@@ -115,7 +116,7 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
   Future _refreshDevices() async {
     var devices = await OCFClient.discoverDevices();
     if (devices == null) {
-      ToastNotification.show(context, AppConstants.unableToDiscoverDevices);
+      ToastNotification.show(context, AppLocalizations.of(context).unableToDiscoverDevicesNotification);
       return;
     }
     setState(() {

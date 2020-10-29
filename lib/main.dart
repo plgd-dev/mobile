@@ -6,10 +6,12 @@ import 'package:client/screens/devicesScreen.dart';
 import 'package:client/screens/setupScreen.dart';
 import 'package:client/screens/splashScreen.dart';
 import 'package:client/services/ocfClient.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import 'globals.dart';
+import 'appLocalizations.dart';
 
 bool _isSetupRequired = true;
 
@@ -45,11 +47,46 @@ class MyApp extends StatelessWidget {
           )
         )
       ),
+      localizationsDelegates: [
+        const AppLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate
+      ],
+      supportedLocales: [
+        const Locale('en', ''),
+        const Locale('de', ''),
+        const Locale('ko', ''),
+        const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans')
+      ],
       initialRoute: _isSetupRequired ? '/setup' : '/splash',
       routes: {
         '/setup': (context) => SetupScreen(),
         '/splash': (context) => SplashScreen(),
         '/devices': (context) => DevicesScreen(),
+      }
+    );
+  }
+
+  static void showResetAppConfirmationDialog(BuildContext context, Function onCancel) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(AppLocalizations.of(context).resetApplicationDialogText),
+          actions: <Widget>[
+            FlatButton(
+              child: Text(AppLocalizations.of(context).resetApplicationDialogCancelButton),
+              onPressed: () {
+                onCancel();
+                Navigator.of(context).pop(false);
+              }
+            ),
+            FlatButton(
+              child: Text(AppLocalizations.of(context).resetApplicationDialogYesButton),
+              onPressed: () async => await MyApp.reset(context)
+            ),
+          ],
+        );
       }
     );
   }
@@ -62,15 +99,3 @@ class MyApp extends StatelessWidget {
     Navigator.of(context).pushNamedAndRemoveUntil('/setup', (route) => false);
   }
 }
-
-// void main() async {
-//   runZonedGuarded(
-//     () => runApp(MyApp()),
-//     (error, stackTrace) {
-//       await sentry.captureException(
-//         exception: error,
-//         stackTrace: stackTrace,
-//       );
-//     },
-//   );
-// }

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:client/appLocalizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:client/components/toastNotification.dart';
@@ -48,7 +49,7 @@ class _SplashState extends State<SplashScreen> {
               )
             )
           ),
-          OCFClient.getTokenRequestWidget(context, false, _tryGetTokenInBackground, _initializeOCFClient, _showResetAppConfigurationDialog)
+          OCFClient.getTokenRequestWidget(context, false, _tryGetTokenInBackground, _initializeOCFClient, _showResetAppConfirmationDialog)
         ]
       )
     );
@@ -60,32 +61,12 @@ class _SplashState extends State<SplashScreen> {
       Navigator.of(context).pushNamedAndRemoveUntil('/devices', (route) => false);
     } else {
       await MyApp.reset(context);
-      ToastNotification.show(context, AppConstants.unableToInitializeClientSetupRedirect);
+      ToastNotification.show(context, AppLocalizations.of(context).unableToInitializeClientNotification + AppLocalizations.of(context).requestApplicationSetupNotification);
     }
   }
 
-  void _showResetAppConfigurationDialog() {
+  void _showResetAppConfirmationDialog() {
     setState(() { _tryGetTokenInBackground = false; });
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Text(AppConstants.resetApplicationDialogText),
-          actions: <Widget>[
-            FlatButton(
-              child: Text(AppConstants.resetApplicationDialogCancelButton),
-              onPressed: () {
-                setState(() { _tryGetTokenInBackground = true; });
-                Navigator.of(context).pop(false);
-              }
-            ),
-            FlatButton(
-              child: Text(AppConstants.resetApplicationDialogOkButton),
-              onPressed: () async => await MyApp.reset(context)
-            ),
-          ],
-        );
-      }
-    );
+    MyApp.showResetAppConfirmationDialog(context, () => setState(() { _tryGetTokenInBackground = true; }));
   }
 }

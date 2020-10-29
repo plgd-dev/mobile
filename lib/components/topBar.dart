@@ -17,9 +17,7 @@ class TopBar extends AppBar {
       ) : null,
     actions: showLogout ? [
       FlatButton(
-        onPressed: () async {
-          await MyApp.reset(context);
-        },
+        onPressed: () => MyApp.showResetAppConfirmationDialog(context, () => {}),
         child: Icon(
           Icons.logout,
           color: Colors.white,

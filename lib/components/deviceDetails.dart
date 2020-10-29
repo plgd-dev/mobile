@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:client/appLocalizations.dart';
 import 'package:client/components/toastNotification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -58,7 +59,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
             _tryGetCodeInBackground = true;
           });
         },
-        AppConstants.buttonOnboard,
+        AppLocalizations.of(context).onboardButton,
         Icons.cloud_done
       );
     } else if (device.ownershipStatus == 'owned') {
@@ -66,7 +67,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
         Colors.red,
         Colors.red.withAlpha(120),
         () async => await _factoryReset(),
-        AppConstants.buttonFactoryReset,
+        AppLocalizations.of(context).factoryResetButton,
         Icons.cloud_off
       );
     }
@@ -74,7 +75,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
       Colors.red,
       Colors.red.withAlpha(120),
       null,
-      AppConstants.buttonFactoryReset,
+      AppLocalizations.of(context).factoryResetButton,
       Icons.cloud_off
     );
   }
@@ -104,13 +105,13 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
     var deviceID = await OCFClient.ownDevice(this.widget.device.id);
     if (deviceID == null) {
       _cancelOnboarding();
-      ToastNotification.show(context, AppConstants.unableToSetDeviceOwnership);
+      ToastNotification.show(context, AppLocalizations.of(context).unableToSetDeviceOwnershipNotification);
       return;
     }
 
     if (!await OCFClient.setAccessForCloud(deviceID)) {
       _cancelOnboarding();
-      ToastNotification.show(context, AppConstants.unableToSetCloudACL);
+      ToastNotification.show(context, AppLocalizations.of(context).unableToSetACLNotification);
       return;
     }
 
@@ -118,7 +119,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
     String authCode = jsonResponse['code'];
     if (!await OCFClient.onboardDevice(deviceID, authCode)) {
       _cancelOnboarding();
-      ToastNotification.show(context, AppConstants.unableToOnboard);
+      ToastNotification.show(context, AppLocalizations.of(context).unableToOnboardNotification);
       return;
     }
 
@@ -130,7 +131,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
     setState(() { _userRequestInProgress = true; });
     if (!await OCFClient.disownDevice(this.widget.device.id)) {
       setState(() { _userRequestInProgress = false; });
-      ToastNotification.show(context, AppConstants.unableToDisown);
+      ToastNotification.show(context, AppLocalizations.of(context).unableToDisownNotification);
     } else {
       await Future.delayed(const Duration(seconds: 3));
       Navigator.of(context).pop(true);

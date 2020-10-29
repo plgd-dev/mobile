@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:client/appLocalizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -64,9 +65,9 @@ class _SetupState extends State<SetupScreen> {
                     child: RichText(
                       text: TextSpan(
                         children: <TextSpan>[
-                          TextSpan(text: AppConstants.continueToPlgdCloudButtonPart1),
+                          TextSpan(text: AppLocalizations.of(context).continueToPlgdCloudButtonPart1),
                           TextSpan(
-                            text: AppConstants.continueToPlgdCloudButtonPart2, 
+                            text: AppLocalizations.of(context).continueToPlgdCloudButtonPart2, 
                             style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.yellowMainColor)
                           )
                         ],
@@ -85,13 +86,13 @@ class _SetupState extends State<SetupScreen> {
                     style: TextStyle(fontStyle: FontStyle.italic, fontSize: 10),
                     children: <TextSpan>[
                       TextSpan(
-                        text: AppConstants.configureCustomEndpointButtonPart1,
+                        text: AppLocalizations.of(context).configureCustomEndpointButtonPart1,
                         style: TextStyle(color: AppConstants.blueMainColor, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => _showCustomEndpointDialog()
                       ),
                       TextSpan(
-                        text: AppConstants.configureCustomEndpointButtonPart2,
+                        text: AppLocalizations.of(context).configureCustomEndpointButtonPart2,
                         style: TextStyle(color: AppConstants.darkMainColor),
                       )
                     ],
@@ -117,8 +118,8 @@ class _SetupState extends State<SetupScreen> {
     try {
       var response = await ioClient.get(cloudEndpoint).timeout(const Duration(seconds: 10));
       configurationResponse = response.body;
-    } on TimeoutException catch (_) {
-      ToastNotification.show(context, AppConstants.unableToFetchConfiguration);
+    } on Exception catch (_) {
+      ToastNotification.show(context, AppLocalizations.of(context).unableToFetchConfigurationNotification);
       setState(() {
         _setupInProgress = false;
       });
@@ -126,7 +127,7 @@ class _SetupState extends State<SetupScreen> {
     }
 
     if (!CloudConfiguration.isValid(configurationResponse)) {
-      ToastNotification.show(context, AppConstants.invalidConfiguration);
+      ToastNotification.show(context, AppLocalizations.of(context).invalidConfigurationNotification);
       setState(() {
         _setupInProgress = false;
       });
@@ -148,7 +149,7 @@ class _SetupState extends State<SetupScreen> {
         _setupInProgress = false;
         _tryGetTokenInBackground = false;
       });
-      ToastNotification.show(context, AppConstants.unableToInitializeClient);
+      ToastNotification.show(context, AppLocalizations.of(context).unableToInitializeClientNotification);
     }
   }
 
@@ -175,7 +176,7 @@ class _SetupState extends State<SetupScreen> {
                     Pattern pattern = r'[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)';
                     RegExp regex = RegExp(pattern);
                     if (!regex.hasMatch(url))
-                      return AppConstants.invalidEndpoint;
+                      return AppLocalizations.of(context).invalidEndpointNotification;
                     else
                       return null;
                   },
@@ -198,7 +199,7 @@ class _SetupState extends State<SetupScreen> {
         actions: <Widget>[
           FlatButton(
             child: Text(
-              AppConstants.customEndpointButtonCancel,
+              AppLocalizations.of(context).customEndpointButtonCancel,
               style: TextStyle(color: AppConstants.blueMainColor)
             ),
             onPressed: () {
@@ -207,7 +208,7 @@ class _SetupState extends State<SetupScreen> {
           ),
           FlatButton(
             child: Text(
-              AppConstants.customEndpointButtonContinue,
+              AppLocalizations.of(context).customEndpointButtonContinue,
               style: TextStyle(color: AppConstants.blueMainColor)
             ),
             onPressed: () {
