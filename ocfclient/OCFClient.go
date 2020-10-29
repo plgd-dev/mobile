@@ -40,10 +40,9 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 		ObserverPollingIntervalSeconds:    1,
 		DeviceCacheExpirationSeconds:      3600,
 		DeviceOwnershipBackend: &local.DeviceOwnershipBackendConfig{
-			AccessTokenURL:                  c.cloudConfiguration.AccessTokenUrl,
-			AuthCodeURL:                     c.cloudConfiguration.AuthCodeUrl,
-			SigningServerAddress:            c.cloudConfiguration.SigningServerAddress,
-			AcquireManufacturerCertificates: true,
+			AccessTokenURL:       c.cloudConfiguration.AccessTokenUrl,
+			AuthCodeURL:          c.cloudConfiguration.AuthCodeUrl,
+			SigningServerAddress: c.cloudConfiguration.SigningServerAddress,
 		},
 	}, appCallback, func(err error) {})
 	if err != nil {
@@ -107,7 +106,7 @@ func (c *Ocfclient) OwnDevice(deviceID, accessToken string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	ctx = kitGrpc.CtxWithToken(ctx, accessToken)
-	return c.localClient.OwnDevice(ctx, deviceID)
+	return c.localClient.OwnDevice(ctx, deviceID, local.WithOTM(local.OTMType_JustWorks))
 }
 
 // SetAccessForCloud sets required ACL for the Cloud
