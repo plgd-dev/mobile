@@ -86,14 +86,10 @@ class _SetupState extends State<SetupScreen> {
                     style: TextStyle(fontStyle: FontStyle.italic, fontSize: 10),
                     children: <TextSpan>[
                       TextSpan(
-                        text: AppLocalizations.of(context).configureCustomEndpointButtonPart1,
+                        text: AppLocalizations.of(context).configureCustomEndpointButton,
                         style: TextStyle(color: AppConstants.blueMainColor, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () => _showCustomEndpointDialog()
-                      ),
-                      TextSpan(
-                        text: AppLocalizations.of(context).configureCustomEndpointButtonPart2,
-                        style: TextStyle(color: AppConstants.darkMainColor),
                       )
                     ],
                   ),

@@ -25,12 +25,8 @@ class AppLocalizations {
     return Intl.message('plgd.cloud', name: 'continueToPlgdCloudButtonPart2');
   }
   
-  String get configureCustomEndpointButtonPart1 {
-    return Intl.message('Configure', name: 'configureCustomEndpointButtonPart1');
-  }
-
-  String get configureCustomEndpointButtonPart2 {
-    return Intl.message(' custom plgd cloud endpoint', name: 'configureCustomEndpointButtonPart2');
+  String get configureCustomEndpointButton {
+    return Intl.message('Configure', name: 'configureCustomEndpointButton');
   }
   
   String get customEndpointButtonContinue {
