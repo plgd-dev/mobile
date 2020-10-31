@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:client/appConstants.dart';
 import 'package:client/appLocalizations.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,6 @@ import 'package:http/io_client.dart';
 import 'package:client/components/toastNotification.dart';
 import 'package:client/models/cloudConfiguration.dart';
 import 'package:client/services/ocfClient.dart';
-
-import '../appConstants.dart';
 
 class SetupScreen extends StatefulWidget {
   @override
@@ -40,7 +39,7 @@ class _SetupState extends State<SetupScreen> {
               alignment: Alignment.topCenter,
               color: Colors.white,
               child: Padding(
-                padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.2),
+                padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.1),
                 child: Image(
                   image: AssetImage('assets/logo.png'),
                   width: 220
@@ -65,9 +64,9 @@ class _SetupState extends State<SetupScreen> {
                     child: RichText(
                       text: TextSpan(
                         children: <TextSpan>[
-                          TextSpan(text: AppLocalizations.of(context).continueToPlgdCloudButtonPart1),
+                          TextSpan(text: AppLocalizations.of(context).continueToPlgdCloudButton),
                           TextSpan(
-                            text: AppLocalizations.of(context).continueToPlgdCloudButtonPart2, 
+                            text: AppConstants.tryPlgdCloudEndpoint, 
                             style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.yellowMainColor)
                           )
                         ],

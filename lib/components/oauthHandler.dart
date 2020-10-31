@@ -1,8 +1,7 @@
+import 'package:client/appConstants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
-import '../appConstants.dart';
 
 class OAuthHandler extends StatefulWidget {
   final String authUrl;

@@ -21,10 +21,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static _notInlinedMessages(_) => <String, Function> {
-    "configureCustomEndpointButtonPart1" : MessageLookupByLibrary.simpleMessage("Konfiguriere"),
-    "configureCustomEndpointButtonPart2" : MessageLookupByLibrary.simpleMessage(" benutzerdefinierter plgd cloud endpoint"),
-    "continueToPlgdCloudButtonPart1" : MessageLookupByLibrary.simpleMessage("Weiter mit"),
-    "continueToPlgdCloudButtonPart2" : MessageLookupByLibrary.simpleMessage("plgd.cloud"),
+    "configureCustomEndpointButton" : MessageLookupByLibrary.simpleMessage("Konfiguriere benutzerdefinierter plgd cloud endpoint"),
+    "continueToPlgdCloudButton" : MessageLookupByLibrary.simpleMessage("Weiter mit "),
     "customEndpointButtonCancel" : MessageLookupByLibrary.simpleMessage("Abbrechen"),
     "customEndpointButtonContinue" : MessageLookupByLibrary.simpleMessage("Weiter"),
     "devicesScreenTitle" : MessageLookupByLibrary.simpleMessage("GERÄTE"),

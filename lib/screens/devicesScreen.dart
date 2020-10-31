@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:client/appConstants.dart';
 import 'package:client/appLocalizations.dart';
 import 'package:client/components/toastNotification.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,6 @@ import 'package:client/components/deviceDetails.dart';
 import 'package:client/components/topBar.dart';
 import 'package:client/models/device.dart';
 import 'package:client/services/ocfClient.dart';
-
-import '../appConstants.dart';
 
 class DevicesScreen extends StatefulWidget {
   DevicesScreen({Key key}) : super(key: key);
@@ -69,7 +68,7 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
       actionExtentRatio: 0.25,
       child: ListTile(
         title: _getListTitle(device),
-        subtitle: Text('${device.id}'),
+        subtitle: Text('${device.id}', style: TextStyle(fontSize: 12)),
         onTap: () async {
           var refreshDevices = await showModalBottomSheet(
             context: context,
@@ -94,21 +93,45 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
       return Row(
         children: [
           Icon(Icons.fiber_new_rounded, size: 25, color: AppConstants.yellowMainColor),
-          Text(' ${device.name}')
+          Flexible(
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              strutStyle: StrutStyle(fontSize: 14),
+              text: TextSpan(
+                  style: TextStyle(color: Colors.black),
+                  text: ' ${device.name}'),
+            ),
+          )
         ]
       );
     } else if (device.ownershipStatus == 'owned') {
       return Row(
         children: [
           Icon(Icons.lock_outline, size: 20, color: Colors.green),
-          Text(' ${device.name}')
+          Flexible(
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              strutStyle: StrutStyle(fontSize: 14),
+              text: TextSpan(
+                  style: TextStyle(color: Colors.black),
+                  text: ' ${device.name}'),
+            ),
+          )
         ]
       );
     }
     return Row(
       children: [
         Icon(Icons.lock_outline, size: 20, color: Colors.red),
-        Text(' ${device.name}')
+        Flexible(
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              strutStyle: StrutStyle(fontSize: 14),
+              text: TextSpan(
+                  style: TextStyle(color: Colors.black),
+                  text: ' ${device.name}'),
+            ),
+          )
       ]
     );
   }

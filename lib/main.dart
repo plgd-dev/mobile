@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:client/appLocalizations.dart';
+import 'package:client/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:client/appConstants.dart';
 import 'package:client/screens/devicesScreen.dart';
@@ -9,9 +11,6 @@ import 'package:client/services/ocfClient.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
-import 'globals.dart';
-import 'appLocalizations.dart';
 
 bool _isSetupRequired = true;
 
@@ -56,7 +55,7 @@ class MyApp extends StatelessWidget {
         const Locale('en', ''),
         const Locale('de', ''),
         const Locale('ko', ''),
-        const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans')
+        const Locale('zh', '')
       ],
       initialRoute: _isSetupRequired ? '/setup' : '/splash',
       routes: {

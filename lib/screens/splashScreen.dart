@@ -1,13 +1,12 @@
 import 'dart:ui';
 
+import 'package:client/appConstants.dart';
 import 'package:client/appLocalizations.dart';
+import 'package:client/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:client/components/toastNotification.dart';
 import 'package:client/services/ocfClient.dart';
-
-import '../appConstants.dart';
-import '../main.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -32,7 +31,7 @@ class _SplashState extends State<SplashScreen> {
             alignment: Alignment.topCenter,
             color: Colors.white,
             child: Padding(
-              padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.2),
+              padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.1),
               child: Image(
                 image: AssetImage('assets/logo.png'),
                 width: 220

@@ -1,13 +1,12 @@
 import 'dart:io';
 
+import 'package:client/appConstants.dart';
 import 'package:sentry/sentry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'appConstants.dart';
-
 class Globals {
   static SharedPreferences localStorage;
-  static final sentry = SentryClient(dsn: AppConstants.sentryEndpoint, environmentAttributes: Event(environment: _getEnvironmentName()));
+  static final sentry = SentryClient(dsn: AppConstants.sentryDSN, environmentAttributes: Event(environment: _getEnvironmentName()));
   
   static String _getEnvironmentName() {
     if (Platform.isIOS)

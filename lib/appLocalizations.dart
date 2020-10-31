@@ -17,12 +17,8 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
-  String get continueToPlgdCloudButtonPart1 {
-    return Intl.message('Continue to ', name: 'continueToPlgdCloudButtonPart1');
-  }
-
-  String get continueToPlgdCloudButtonPart2 {
-    return Intl.message('plgd.cloud', name: 'continueToPlgdCloudButtonPart2');
+  String get continueToPlgdCloudButton {
+    return Intl.message('Continue to ', name: 'continueToPlgdCloudButton');
   }
   
   String get configureCustomEndpointButton {
@@ -98,7 +94,7 @@ class AppLocalizations {
   }
 
   String get devicesScreenTitle {
-    return Intl.message('DEVICEZ', name: 'devicesScreenTitle');
+    return Intl.message('DEVICES', name: 'devicesScreenTitle');
   }
 }
 
@@ -106,7 +102,7 @@ class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'de'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => ['en', 'de', 'ko', 'zh'].contains(locale.languageCode);
 
   @override
   Future<AppLocalizations> load(Locale locale) => AppLocalizations.load(locale);

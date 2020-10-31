@@ -1,6 +1,6 @@
+import 'package:client/main.dart';
 import 'package:flutter/material.dart';
 import 'package:client/appConstants.dart';
-import '../main.dart';
 
 class TopBar extends AppBar {
   TopBar(BuildContext context, String title, { Key key, PreferredSizeWidget bottom, bool showLogout = false }) : super(
