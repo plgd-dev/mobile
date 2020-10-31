@@ -1,0 +1,98 @@
+{
+    "continueToPlgdCloudButton": "继续前往 ",
+    "@continueToPlgdCloudButton": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/rJfkyeW3DF1ZngpQ3aRmvmR7.PNG",
+        "type": "text"
+    },
+    "configureCustomEndpointButton": "自定义 plgd 云平台的端点",
+    "@configureCustomEndpointButton": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/rgItBMcEBbNdAtIZjlmz4HP1.PNG",
+        "type": "text"
+    },
+    "customEndpointButtonContinue": "继续",
+    "@customEndpointButtonContinue": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/9LF31qWiN6L0sbNSrScSKHRD.PNG",
+        "type": "text"
+    },
+    "customEndpointButtonCancel": "取消",
+    "@customEndpointButtonCancel": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/gWwFwOcTWbD7vAoCA7cKyTi1.PNG",
+        "type": "text"
+    },
+    "invalidEndpointNotification": "端点的URL格式不正确",
+    "@invalidEndpointNotification": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/BWy5wxbaMx02oqmhxDn0aAOm.PNG",
+        "type": "text"
+    },
+    "unableToFetchConfigurationNotification": "无法获得服务器配置信息",
+    "@unableToFetchConfigurationNotification": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/ClDezMD1SQVfTZn0QmLdxu83.PNG",
+        "type": "text"
+    },
+    "invalidConfigurationNotification": "获得配置信息，但格式不正确",
+    "@invalidConfigurationNotification": {
+        "description": "Configuration was successfuly fetched but format is invalid (format, version, ...)",
+        "type": "text"
+    },
+    "unableToInitializeClientNotification": "plgd 客户端初始化出错",
+    "@unableToInitializeClientNotification": {
+        "description": "Part of the application initialization process is plgd client initialization. This process might fail due to various reasons.",
+        "type": "text"
+    },
+    "requestApplicationSetupNotification": "请重置应用程序",
+    "@requestApplicationSetupNotification": {
+        "description": "Application is configured just once, unless user resets it or specific error occurs. If specific runtime error occurs, application is reset automatically and user is asked to setup it again.",
+        "type": "text"
+    },
+    "unableToDiscoverDevicesNotification": "设备发现过程出错",
+    "unableToSetDeviceOwnershipNotification": "无法设置设备的所有者",
+    "@unableToSetDeviceOwnershipNotification": {
+        "description": "Device ownership transfer failed.",
+        "type": "text"
+    },
+    "unableToSetACLNotification": "访问控制列表设置出错",
+    "@unableToSetACLNotification": {
+        "description": "Part of the onboarding process is to set correct ACLs. This operation might fail as well.",
+        "type": "text"
+    },
+    "unableToOnboardNotification": "设备连接 plgd 云平台时出错",
+    "@unableToOnboardNotification": {
+        "description": "Onboarding device happens after successful ownership transfer. Onboarding means requesting device to connect to the public plgd cloud endpoint.",
+        "type": "text"
+    },
+    "unableToDisownNotification": "无法把设备恢复为出厂设置",
+    "@unableToDisownNotification": {
+        "description": "Factory reset or disown disconnects the device from the cloud and resets it's ownership to factory reset mode. After this process it present's itself as a brand new not yet used device.",
+        "type": "text"
+    },
+    "onboardButton": "连接云平台",
+    "@onboardButton": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/pgKa6we5lL5BMw1BnSKopNVy.PNG",
+        "type": "text"
+    },
+    "factoryResetButton": "恢复出厂设置（设备将与云平台断开）",
+    "@factoryResetButton": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/DRX9dp6aHG6MOq9J6ds7h7UA.PNG",
+        "type": "text"
+    },
+    "resetApplicationDialogText": "是否重置应用程序？",
+    "@resetApplicationDialogText": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/mlIFPQ7DPEQthWxzHkhmK7Jg.PNG",
+        "type": "text"
+    },
+    "resetApplicationDialogYesButton": "是",
+    "@resetApplicationDialogYesButton": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/ZDAj6P7ecbqtkAlKrY2tIlvs.PNG",
+        "type": "text"
+    },
+    "resetApplicationDialogCancelButton": "取消",
+    "@resetApplicationDialogCancelButton": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/T8tKfEQOmfd9EPZCbrlVL415.PNG",
+        "type": "text"
+    },
+    "devicesScreenTitle": "设备",
+    "@devicesScreenTitle": {
+        "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/QSBJl3j8Ch8x23cqZCk3oTlg.PNG",
+        "type": "text"
+    }
+}

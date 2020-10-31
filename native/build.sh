@@ -1,1 +1,0 @@
-gomobile bind --target ios -bundleid com.go-ocf -o ../ios/Runner/OCFClient.framework
