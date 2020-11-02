@@ -10,7 +10,7 @@ import '../globals.dart';
 
 class OCFClient {
   static final String cloudConfigurationStorageKey = "plgd.dev/cloud-configuration";
-  static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/sdk');
+  static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/client');
 
   static bool _isInitialized = false;
   static String _accessToken = "";

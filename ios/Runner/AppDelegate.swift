@@ -9,7 +9,7 @@ import Ocfclient
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-    let goChannel = FlutterMethodChannel(name: "plgd.dev/sdk", binaryMessenger: controller.binaryMessenger)
+    let goChannel = FlutterMethodChannel(name: "plgd.dev/client", binaryMessenger: controller.binaryMessenger)
 
     goChannel.setMethodCallHandler({
       (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
@@ -34,7 +34,7 @@ import Ocfclient
         do {
             try ocfClient.initialize(args["accessToken"], cloudConfiguration: args["cloudConfiguration"])
         } catch {
-            result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
+            result(FlutterError(code: "-1", message: error.localizedDescription, details: nil))
         }
         result(true)
     }
@@ -43,7 +43,7 @@ import Ocfclient
         var error : NSError?
         let devices = ocfClient.discover(args as! Int, error: &error)
         if (error != nil) {
-            result(FlutterError(code: "FAILED", message: error!.localizedDescription, details: nil))
+            result(FlutterError(code: "-1", message: error!.localizedDescription, details: nil))
             return;
         }
         result(devices)
@@ -54,7 +54,7 @@ import Ocfclient
         var error : NSError?
         let deviceId = ocfClient.ownDevice(args["deviceID"], accessToken: args["accessToken"], error: &error)
         if (error != nil) {
-            result(FlutterError(code: "FAILED", message: error!.localizedDescription, details: nil))
+            result(FlutterError(code: "-1", message: error!.localizedDescription, details: nil))
             return;
         }
         result(deviceId)
@@ -65,7 +65,7 @@ import Ocfclient
         do {
             try ocfClient.setAccessForCloud(args["deviceID"])
         } catch {
-            result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
+            result(FlutterError(code: "-1", message: error.localizedDescription, details: nil))
         }
         result(true)
     }
@@ -75,7 +75,7 @@ import Ocfclient
         do {
             try ocfClient.onboardDevice(args["deviceID"], authCode: args["authCode"])
         } catch {
-            result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
+            result(FlutterError(code: "-1", message: error.localizedDescription, details: nil))
         }
         result(true)
     }
@@ -85,7 +85,7 @@ import Ocfclient
         do {
             try ocfClient.disownDevice(args["deviceID"])
         } catch {
-            result(FlutterError(code: "FAILED", message: error.localizedDescription, details: nil))
+            result(FlutterError(code: "-1", message: error.localizedDescription, details: nil))
         }
         result(true)
     }
