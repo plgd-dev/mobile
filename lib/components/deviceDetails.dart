@@ -24,26 +24,29 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _userRequestInProgress ? null : Navigator.of(context).pop(),
-      child: Stack(
-        alignment: AlignmentDirectional.bottomCenter,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(bottom: 85),
-            child: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 20)
-          ),
-          Padding(
-            padding: EdgeInsets.only(bottom: 65),
-            child: Text(widget.device.name, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))
-          ),
-          Padding(
-            padding: EdgeInsets.only(bottom: 10, left: 15, right: 15),
-            child: _getActionButton(this.widget.device)
-          ),
-          OCFClient.getCodeRequestWidget(context, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding)
-        ]
+    return WillPopScope(
+      onWillPop: () async => !_userRequestInProgress,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _userRequestInProgress ? null : Navigator.of(context).pop(),
+        child: Stack(
+          alignment: AlignmentDirectional.bottomCenter,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(bottom: 85),
+              child: Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 20)
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: 65),
+              child: Text(widget.device.name, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: 10, left: 15, right: 15),
+              child: _getActionButton(this.widget.device)
+            ),
+            OCFClient.getCodeRequestWidget(context, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding)
+          ]
+        )
       )
     );
   }

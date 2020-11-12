@@ -17,15 +17,31 @@ class DevicesScreen extends StatefulWidget {
   _DevicesState createState() => _DevicesState();
 }
 
-class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateMixin {
+class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = new GlobalKey<RefreshIndicatorState>();
   List<Device> _deviceList = new List<Device>();
 
   @override
   initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (_deviceList.isEmpty)
       WidgetsBinding.instance.addPostFrameCallback((_) => _refreshIndicatorKey.currentState.show());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (OCFClient.isTokenExpired()) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/splash', (route) => false);
+      }
+    }
   }
   
   @override

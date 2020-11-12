@@ -29,10 +29,18 @@ import Ocfclient
     }
     
     let ocfClient = OcfclientOcfclient();
+    var isInitialized = false;
+
     private func initializeOCFClient(args: Any?, result: FlutterResult) {
+        if (isInitialized) {
+            result(true)
+            return
+        }
+
         let args = args as! [String: String]
         do {
             try ocfClient.initialize(args["accessToken"], cloudConfiguration: args["cloudConfiguration"])
+            isInitialized = true
         } catch {
             result(FlutterError(code: "-1", message: error.localizedDescription, details: nil))
         }

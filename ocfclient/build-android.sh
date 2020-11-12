@@ -1,1 +1,1 @@
-CC=C:/Users/admin/AppData/Local/Android/Sdk/ndk/21.3.6528147/toolchains/llvm/prebuilt/windows-x86_64/bin/clang gomobile bind -o ../android/app/libs/ocfclient.aar
+gomobile bind -o ../android/app/libs/ocfclient.aar
