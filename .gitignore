@@ -115,3 +115,5 @@ app.*.symbols
 
 # OCF Client
 **/ios/Frameworks/OCFClient.framework/*
+**/android/app/libs/*.jar
+**/android/app/libs/*.aar

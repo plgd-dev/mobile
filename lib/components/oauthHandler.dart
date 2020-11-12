@@ -1,4 +1,6 @@
 import 'package:client/appConstants.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -47,6 +49,11 @@ class _OAuthHandlerState extends State<OAuthHandler> {
               child: WebView(
                 initialUrl: authUrl,
                 userAgent: "Mozilla/5.0 Google",
+                gestureRecognizers: Set()
+                  ..add(Factory<VerticalDragGestureRecognizer>(
+                    () => VerticalDragGestureRecognizer()
+                  )
+                ),
                 javascriptMode: JavascriptMode.unrestricted,
                 onWebViewCreated: (WebViewController webViewController) {
                   _controller = webViewController;
