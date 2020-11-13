@@ -23,7 +23,7 @@ class MainActivity: FlutterActivity() {
                 "initialize" -> this.initializeOCFClient(call, result)
                 "discoverDevices" -> this.discoverDevices(call, result)
                 "ownDevice" -> this.ownDevice(call, result)
-                "setAccessForCloud" -> this.ownDevice(call, result)
+                "setAccessForCloud" -> this.setAccessForCloud(call, result)
                 "onboardDevice" -> this.onboardDevice(call, result)
                 "disownDevice" -> this.disownDevice(call, result)
                 else -> result.notImplemented()
