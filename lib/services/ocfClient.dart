@@ -5,16 +5,28 @@ import 'package:flutter/services.dart';
 import 'package:client/components/oauthHandler.dart';
 import 'package:client/models/cloudConfiguration.dart';
 import 'package:client/models/device.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 import '../globals.dart';
 
 class OCFClient {
   static final String cloudConfigurationStorageKey = "plgd.dev/cloud-configuration";
-  static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/sdk');
+  static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/client');
 
   static bool _isInitialized = false;
   static String _accessToken = "";
+  static DateTime _tokenExpirationTime;
   static CloudConfiguration _cloudConfiguration;
+  static bool isTokenExpired() => DateTime.now().isAfter(_tokenExpirationTime);
+
+  static String get accessToken {
+    return _accessToken;
+  }
+
+  static set accessToken(String accessToken) {
+    _accessToken = accessToken;
+    _tokenExpirationTime = JwtDecoder.getExpirationDate(accessToken).subtract(const Duration(hours: 1));
+  }
 
   static CloudConfiguration get cloudConfiguration {
     if (_cloudConfiguration == null && Globals.localStorage.containsKey(cloudConfigurationStorageKey)) {
@@ -29,12 +41,12 @@ class OCFClient {
   }
 
   static Future<bool> initialize(String tokenResponse) async {
-    _accessToken = _parseAccessToken(tokenResponse);
-    if (_accessToken == null || cloudConfiguration == null)
+    accessToken = _parseAccessToken(tokenResponse);
+    if (accessToken == null || cloudConfiguration == null)
       return false;
     try {
       await _nativeChannel.invokeMethod("initialize", <String, String> {
-        'accessToken': _accessToken,
+        'accessToken': accessToken,
         'cloudConfiguration': _cloudConfiguration.rawJson
       });
       _isInitialized = true;
@@ -91,7 +103,7 @@ class OCFClient {
     try {
       return await _nativeChannel.invokeMethod<String>('ownDevice', <String, String> {
         'deviceID': deviceID,
-        'accessToken': _accessToken
+        'accessToken': accessToken
       });
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
@@ -195,7 +207,7 @@ class OCFClient {
                 )
               ),
               Padding(
-                padding: EdgeInsets.only(top: 7),
+                padding: EdgeInsets.only(top: 20),
                 child: OAuthHandler(
                   authUrl: actionUrl,
                   authCompleted: (data) {
