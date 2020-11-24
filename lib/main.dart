@@ -8,15 +8,15 @@ import 'package:client/screens/devicesScreen.dart';
 import 'package:client/screens/setupScreen.dart';
 import 'package:client/screens/splashScreen.dart';
 import 'package:client/services/ocfClient.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 bool _isSetupRequired = true;
 
 Future main() async {
     WidgetsFlutterBinding.ensureInitialized();
-    Globals.localStorage = await SharedPreferences.getInstance();
+    await Globals.initialize();
     _isSetupRequired = !Globals.localStorage.containsKey(OCFClient.cloudConfigurationStorageKey);
     runZonedGuarded(
       () => runApp(MyApp()),
@@ -94,7 +94,7 @@ class MyApp extends StatelessWidget {
     var storage = await SharedPreferences.getInstance();
     await storage.remove(OCFClient.cloudConfigurationStorageKey);
     OCFClient.destroy();
-    WebView.platform.clearCookies();
+    await CookieManager.instance().deleteAllCookies();
     Navigator.of(context).pushNamedAndRemoveUntil('/setup', (route) => false);
   }
 }

@@ -44,7 +44,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
               padding: EdgeInsets.only(bottom: 10, left: 15, right: 15),
               child: _getActionButton(this.widget.device)
             ),
-            OCFClient.getCodeRequestWidget(context, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding)
+            OCFClient.getCodeRequestWidget(context, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding, _onHttpError)
           ]
         )
       )
@@ -139,6 +139,11 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
       await Future.delayed(const Duration(seconds: 3));
       Navigator.of(context).pop(true);
     }
+  }
+  
+  void _onHttpError() {
+    _cancelOnboarding();
+    ToastNotification.show(context, AppLocalizations.of(context).unableToAuthenticateNotification);
   }
 
   void _cancelOnboarding() {

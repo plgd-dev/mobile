@@ -34,6 +34,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetApplicationDialogCancelButton" : MessageLookupByLibrary.simpleMessage("취소"),
     "resetApplicationDialogText" : MessageLookupByLibrary.simpleMessage("응용 프로그램을 재설정하시겠습니까?"),
     "resetApplicationDialogYesButton" : MessageLookupByLibrary.simpleMessage("확인"),
+    "unableToAuthenticateNotification" : MessageLookupByLibrary.simpleMessage("인증 진행중에 에러가 발생했습니다"),
     "unableToDiscoverDevicesNotification" : MessageLookupByLibrary.simpleMessage("장치 검색 중 에러 발생"),
     "unableToDisownNotification" : MessageLookupByLibrary.simpleMessage("공장 초기화 모드로 설정할 수 없습니다"),
     "unableToFetchConfigurationNotification" : MessageLookupByLibrary.simpleMessage("설정 파일을 읽어 올 수 없음"),

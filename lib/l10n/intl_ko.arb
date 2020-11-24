@@ -94,5 +94,6 @@
     "@devicesScreenTitle": {
         "description": "https://s3.eu-west-1.amazonaws.com/po-pub/i/QSBJl3j8Ch8x23cqZCk3oTlg.PNG",
         "type": "text"
-    }
+    },
+    "unableToAuthenticateNotification": "인증 진행중에 에러가 발생했습니다"
 }

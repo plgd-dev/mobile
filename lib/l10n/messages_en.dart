@@ -34,6 +34,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "resetApplicationDialogCancelButton" : MessageLookupByLibrary.simpleMessage("Cancel"),
     "resetApplicationDialogText" : MessageLookupByLibrary.simpleMessage("Do you want to reset the application?"),
     "resetApplicationDialogYesButton" : MessageLookupByLibrary.simpleMessage("Yes"),
+    "unableToAuthenticateNotification" : MessageLookupByLibrary.simpleMessage("An error occurred during authentication."),
     "unableToDiscoverDevicesNotification" : MessageLookupByLibrary.simpleMessage("An error occurred during device discovery."),
     "unableToDisownNotification" : MessageLookupByLibrary.simpleMessage("Unable to set the device to factory reset mode."),
     "unableToFetchConfigurationNotification" : MessageLookupByLibrary.simpleMessage("Unable to fetch the configuration."),

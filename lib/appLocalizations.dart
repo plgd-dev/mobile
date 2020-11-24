@@ -49,6 +49,10 @@ class AppLocalizations {
     return Intl.message('An error occurred during plgd client initialization.', name: 'unableToInitializeClientNotification');
   }
 
+  String get unableToAuthenticateNotification {
+    return Intl.message('An error occurred during authentication.', name: 'unableToAuthenticateNotification');
+  }
+
   String get requestApplicationSetupNotification {
     return Intl.message('Please setup your application again.', name: 'requestApplicationSetupNotification');
   }
