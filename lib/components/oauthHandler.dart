@@ -1,6 +1,4 @@
 import 'package:client/appConstants.dart';
-import 'package:client/appLocalizations.dart';
-import 'package:client/components/toastNotification.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -71,11 +69,12 @@ class _OAuthHandlerState extends State<OAuthHandler> {
                 },
                 onLoadError: (InAppWebViewController controller, String url, int code, String message) async {
                   errorOccured();
-                  return;
                 },
                 onLoadHttpError: (InAppWebViewController controller, String url, int statusCode, String description) async {
+                  if (statusCode == 409 && url.contains('apple.com/')) { // apple signin returns 409 but continues successfuly
+                    return;
+                  }
                   errorOccured();
-                  return;
                 },
                 onLoadStop: (InAppWebViewController controller, String url) async {
                   // in case redirect url is requested, expected content will be already present
