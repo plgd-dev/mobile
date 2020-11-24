@@ -39,6 +39,7 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 		KeepAliveConnectionTimeoutSeconds: 10,
 		ObserverPollingIntervalSeconds:    1,
 		DeviceCacheExpirationSeconds:      3600,
+		MaxMessageSize:                    512 * 1024,
 		DeviceOwnershipBackend: &local.DeviceOwnershipBackendConfig{
 			AccessTokenURL:       c.cloudConfiguration.AccessTokenUrl,
 			AuthCodeURL:          c.cloudConfiguration.AuthCodeUrl,

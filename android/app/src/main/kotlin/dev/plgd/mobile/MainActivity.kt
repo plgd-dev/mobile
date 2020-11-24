@@ -32,11 +32,6 @@ class MainActivity: FlutterActivity() {
     }
 
     private fun initializeOCFClient(call: MethodCall, result: MethodChannel.Result) {
-        if (sdkClient != null) {
-            result.success(true)
-            return
-        }
-
         var accessToken = call.argument<String>("accessToken");
         var cloudConfiguration = call.argument<String>("cloudConfiguration")
         _mainScope.launch {

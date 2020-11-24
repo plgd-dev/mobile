@@ -1,20 +1,20 @@
 import 'dart:convert';
 
+import 'package:client/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:client/components/oauthHandler.dart';
 import 'package:client/models/cloudConfiguration.dart';
 import 'package:client/models/device.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-
-import '../globals.dart';
+import 'package:sentry/sentry.dart' as sentry;
 
 class OCFClient {
   static final String cloudConfigurationStorageKey = "plgd.dev/cloud-configuration";
   static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/client');
 
   static bool _isInitialized = false;
-  static String _accessToken = "";
+  static String _accessToken = '';
   static DateTime _tokenExpirationTime;
   static CloudConfiguration _cloudConfiguration;
   static bool isTokenExpired() => DateTime.now().isAfter(_tokenExpirationTime);
@@ -26,6 +26,7 @@ class OCFClient {
   static set accessToken(String accessToken) {
     _accessToken = accessToken;
     _tokenExpirationTime = JwtDecoder.getExpirationDate(accessToken).subtract(const Duration(hours: 1));
+    Globals.sentry.userContext = sentry.User(id: JwtDecoder.decode(accessToken)['sub']);
   }
 
   static CloudConfiguration get cloudConfiguration {
@@ -169,25 +170,26 @@ class OCFClient {
     return false;
   }
 
-  static Widget getTokenRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed) =>
-     _getOAuthWidget(cloudConfiguration?.accessTokenUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed);
+  static Widget getTokenRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) =>
+     _getOAuthWidget(cloudConfiguration?.accessTokenUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed, onError);
 
-  static Widget getCodeRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed) =>
-    _getOAuthWidget(cloudConfiguration?.authCodeUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed);
+  static Widget getCodeRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) =>
+    _getOAuthWidget(cloudConfiguration?.authCodeUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed, onError);
 
-  static Widget _getOAuthWidget(String actionUrl, BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed) {
+  static Widget _getOAuthWidget(String actionUrl, BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) {
     return Visibility(
       visible: visible,
       maintainState: tryInBackground,
       child: OAuthHandler(
         authUrl: actionUrl,
-        promptForCredentials: () => _showLoginModal(actionUrl, context, onCompleted, onLoginPromtDismissed),
-        authCompleted: onCompleted
+        promptForCredentials: () => _showLoginModal(actionUrl, context, onCompleted, onLoginPromtDismissed, onError),
+        authCompleted: onCompleted,
+        errorOccured: onError
       )
     );
   }
 
-  static void _showLoginModal(String actionUrl, BuildContext context, Function(String) onCompleted, Function onLoginPromtDismissed) {
+  static void _showLoginModal(String actionUrl, BuildContext context, Function(String) onCompleted, Function onLoginPromtDismissed, Function onError) {
     showModalBottomSheet<String> (
       isScrollControlled: true,
       context: context,
@@ -213,7 +215,8 @@ class OCFClient {
                   authCompleted: (data) {
                     onCompleted(data);
                     Navigator.of(context).pop('true'); // nullable boolean available only as an experimental feature
-                  }
+                  },
+                  errorOccured: onError
                 )
               )
             ]

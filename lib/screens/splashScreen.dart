@@ -48,7 +48,7 @@ class _SplashState extends State<SplashScreen> {
               )
             )
           ),
-          OCFClient.getTokenRequestWidget(context, false, _tryGetTokenInBackground, _initializeOCFClient, _showResetAppConfirmationDialog)
+          OCFClient.getTokenRequestWidget(context, false, _tryGetTokenInBackground, _initializeOCFClient, _showResetAppConfirmationDialog, _onHttpError)
         ]
       )
     );
@@ -62,6 +62,11 @@ class _SplashState extends State<SplashScreen> {
       await MyApp.reset(context);
       ToastNotification.show(context, AppLocalizations.of(context).unableToInitializeClientNotification + AppLocalizations.of(context).requestApplicationSetupNotification);
     }
+  }
+
+  Future _onHttpError() async {
+    await MyApp.reset(context);
+    ToastNotification.show(context, AppLocalizations.of(context).unableToAuthenticateNotification);
   }
 
   void _showResetAppConfirmationDialog() {

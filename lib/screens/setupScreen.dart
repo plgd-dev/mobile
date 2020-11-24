@@ -95,7 +95,7 @@ class _SetupState extends State<SetupScreen> {
                 )
               )
             ),
-            OCFClient.getTokenRequestWidget(context, false, _tryGetTokenInBackground, _initializeOCFClient, _restartSetup)
+            OCFClient.getTokenRequestWidget(context, false, _tryGetTokenInBackground, _initializeOCFClient, _restartSetup, _onHttpError)
           ]
         )
       )
@@ -146,6 +146,14 @@ class _SetupState extends State<SetupScreen> {
       });
       ToastNotification.show(context, AppLocalizations.of(context).unableToInitializeClientNotification);
     }
+  }
+
+  void _onHttpError() {
+    setState(() {
+        _setupInProgress = false;
+        _tryGetTokenInBackground = false;
+      });
+    ToastNotification.show(context, AppLocalizations.of(context).unableToAuthenticateNotification);
   }
 
   void _restartSetup() {

@@ -1,30 +1,34 @@
 import 'package:client/appConstants.dart';
+import 'package:client/appLocalizations.dart';
+import 'package:client/components/toastNotification.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class OAuthHandler extends StatefulWidget {
   final String authUrl;
   final Function promptForCredentials;
   final Function(String) authCompleted;
+  final Function errorOccured;
 
-  OAuthHandler({Key key, this.authUrl, this.promptForCredentials, this.authCompleted}) : super(key: key);
+  OAuthHandler({Key key, this.authUrl, this.promptForCredentials, this.authCompleted, this.errorOccured}) : super(key: key);
   
   @override
-  _OAuthHandlerState createState() => new _OAuthHandlerState(authUrl, promptForCredentials, authCompleted);
+  _OAuthHandlerState createState() => new _OAuthHandlerState(authUrl, promptForCredentials, authCompleted, errorOccured);
 }
 
 class _OAuthHandlerState extends State<OAuthHandler> {
   final String authUrl;
   final Function promptForCredentials;
   final Function(String) authCompleted;
+  final Function errorOccured;
   String authOrigin;
-  WebViewController _controller;
+  InAppWebViewController _controller;
   bool _loadingInProgress = false;
 
-  _OAuthHandlerState(this.authUrl, this.promptForCredentials, this.authCompleted);
+  _OAuthHandlerState(this.authUrl, this.promptForCredentials, this.authCompleted, this.errorOccured);
 
   @override
   initState() {
@@ -46,25 +50,37 @@ class _OAuthHandlerState extends State<OAuthHandler> {
             Visibility(
               visible: !_loadingInProgress,
               maintainState: true,
-              child: WebView(
+              child: InAppWebView(
                 initialUrl: authUrl,
-                userAgent: "Mozilla/5.0 Google",
+                initialOptions: InAppWebViewGroupOptions(
+                    crossPlatform: InAppWebViewOptions(
+                      userAgent: 'Mozilla/5.0 Google'
+                    )
+                ),
                 gestureRecognizers: Set()
                   ..add(Factory<VerticalDragGestureRecognizer>(
                     () => VerticalDragGestureRecognizer()
                   )
                 ),
-                javascriptMode: JavascriptMode.unrestricted,
-                onWebViewCreated: (WebViewController webViewController) {
-                  _controller = webViewController;
+                onWebViewCreated: (InAppWebViewController controller) {
+                  _controller = controller;
+                  _controller.addJavaScriptHandler(handlerName:'handleOAuthResponse', callback: (args) {
+                    authCompleted(args[0]);
+                  });
+
                 },
-                javascriptChannels: <JavascriptChannel>[
-                  _extractData(context),
-                ].toSet(),
-                onPageFinished: (String url) {
+                onLoadError: (InAppWebViewController controller, String url, int code, String message) async {
+                  errorOccured();
+                  return;
+                },
+                onLoadHttpError: (InAppWebViewController controller, String url, int statusCode, String description) async {
+                  errorOccured();
+                  return;
+                },
+                onLoadStop: (InAppWebViewController controller, String url) async {
                   // in case redirect url is requested, expected content will be already present
                   if (url.startsWith(authOrigin)) { 
-                    _controller.evaluateJavascript("(function(){OAuth.postMessage(document.documentElement.innerText)})();");
+                    _controller.evaluateJavascript(source: "(function(){window.flutter_inappwebview.callHandler('handleOAuthResponse', document.documentElement.innerText)})();");
                     return;
                   }
 
@@ -75,8 +91,13 @@ class _OAuthHandlerState extends State<OAuthHandler> {
                     return;
                   }
                 },
-                onPageStarted: (_) => { setState(() { _loadingInProgress = true; }) },
-                gestureNavigationEnabled: true,
+                onLoadStart: (InAppWebViewController controller, String url) {
+                  if (url.startsWith(authOrigin))
+                    setState(() { _loadingInProgress = true; });
+                },
+                onReceivedServerTrustAuthRequest: (InAppWebViewController controller, ServerTrustChallenge challenge) async {
+                  return ServerTrustAuthResponse(action: ServerTrustAuthResponseAction.PROCEED);
+                }
               )
             )
           ]
@@ -84,13 +105,4 @@ class _OAuthHandlerState extends State<OAuthHandler> {
       }
     );
   }
-
-  JavascriptChannel _extractData(BuildContext context) {
-    return JavascriptChannel(
-          name: 'OAuth',
-          onMessageReceived: (JavascriptMessage message) {
-            authCompleted(message.message);
-          },
-       );
-    }
 }
