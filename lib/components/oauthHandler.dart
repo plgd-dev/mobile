@@ -67,13 +67,13 @@ class _OAuthHandlerState extends State<OAuthHandler> {
                   });
 
                 },
-                onLoadError: (InAppWebViewController controller, String url, int code, String message) async {
-                  errorOccured();
-                },
-                onLoadHttpError: (InAppWebViewController controller, String url, int statusCode, String description) async {
-                  if (statusCode == 409 && url.contains('apple.com/')) { // apple signin returns 409 but continues successfuly
+                onLoadError: (InAppWebViewController controller, String url, int code, String message) {
+                  if (code == 102) { // apple signin returns 102 what is not an error
                     return;
                   }
+                  errorOccured();
+                },
+                onLoadHttpError: (InAppWebViewController controller, String url, int statusCode, String description) {
                   errorOccured();
                 },
                 onLoadStop: (InAppWebViewController controller, String url) async {
