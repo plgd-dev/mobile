@@ -32,7 +32,7 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 		return err
 	}
 	appCallback, err := app.NewApp(&app.AppConfig{
-		RootCA: lets + "\n" + c.cloudConfiguration.CloudCertificateAuthorities,
+		RootCA: lets + "\n" + c.cloudConfiguration.GetCloudCertificateAuthorities(),
 	})
 	localClient, err := local.NewClientFromConfig(&local.Config{
 		DisablePeerTCPSignalMessageCSMs:   true,
@@ -41,9 +41,10 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 		DeviceCacheExpirationSeconds:      3600,
 		MaxMessageSize:                    512 * 1024,
 		DeviceOwnershipBackend: &local.DeviceOwnershipBackendConfig{
-			AccessTokenURL:       c.cloudConfiguration.AccessTokenUrl,
-			AuthCodeURL:          c.cloudConfiguration.AuthCodeUrl,
-			SigningServerAddress: c.cloudConfiguration.SigningServerAddress,
+			AccessTokenURL:       c.cloudConfiguration.GetAccessTokenUrl(),
+			AuthCodeURL:          c.cloudConfiguration.GetAuthCodeUrl(),
+			SigningServerAddress: c.cloudConfiguration.GetSigningServerAddress(),
+			JWTClaimOwnerID:      c.cloudConfiguration.GetJwtClaimOwnerId(),
 		},
 	}, appCallback, func(err error) {})
 	if err != nil {
@@ -137,7 +138,7 @@ func (c *Ocfclient) SetAccessForCloud(deviceID string) error {
 				Permission: acl.AllPermissions,
 				Subject: acl.Subject{
 					Subject_Device: &acl.Subject_Device{
-						DeviceID: c.cloudConfiguration.CloudId,
+						DeviceID: c.cloudConfiguration.GetCloudId(),
 					},
 				},
 				Resources: acl.AllResources,
@@ -149,21 +150,21 @@ func (c *Ocfclient) SetAccessForCloud(deviceID string) error {
 	if err != nil {
 		return err
 	}
-	caCert := []byte(c.cloudConfiguration.CloudCertificateAuthorities)
+	caCert := []byte(c.cloudConfiguration.GetCloudCertificateAuthorities())
 	certs, err := security.ParseX509FromPEM(caCert)
 	if err != nil {
 		return err
 	}
-	return p.AddCertificateAuthority(ctx, c.cloudConfiguration.CloudId, certs[0])
+	return p.AddCertificateAuthority(ctx, c.cloudConfiguration.GetCloudId(), certs[0])
 }
 
 // OnboardDevice registers the device to the plgd cloud
 func (c *Ocfclient) OnboardDevice(deviceID, authCode string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	authorizationProvider := c.cloudConfiguration.CloudAuthorizationProvider
-	cloudURL := c.cloudConfiguration.CloudUrl
-	cloudID := c.cloudConfiguration.CloudId
+	authorizationProvider := c.cloudConfiguration.GetCloudAuthorizationProvider()
+	cloudURL := c.cloudConfiguration.GetCloudUrl()
+	cloudID := c.cloudConfiguration.GetCloudId()
 	return c.localClient.OnboardDevice(ctx, deviceID, authorizationProvider, cloudURL, authCode, cloudID)
 }
 
