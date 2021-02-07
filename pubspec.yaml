@@ -19,7 +19,7 @@ dependencies:
   flushbar: ^1.10.4
   sentry: ^3.0.1
   package_info: ^0.4.3+2
-  intl: ^0.16.1
+  intl: ^0.17.0
   intl_translation: ^0.17.10+1
 
 dev_dependencies:
