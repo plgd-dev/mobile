@@ -15,7 +15,7 @@ dependencies:
   shared_preferences: ^0.5.10
   http: ^0.12.2
   jwt_decoder: ^1.0.3
-  flutter_spinkit: ^4.1.2+1
+  flutter_spinkit: ^5.0.0
   flushbar: ^1.10.4
   sentry: ^3.0.1
   package_info: ^0.4.3+2
