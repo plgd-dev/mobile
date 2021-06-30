@@ -1,11 +1,12 @@
-module github.com/plgd-dev/onboarding/ocfclient
+module github.com/plgd-dev/plgd.mobile/ocfclient
 
-go 1.14
+go 1.16
 
 require (
-	github.com/plgd-dev/cloud v1.0.1
-	github.com/plgd-dev/go-coap/v2 v2.1.2-0.20201106162854-b526118f5e1c // indirect
-	github.com/plgd-dev/kit v0.0.0-20201012075715-45376a9f2c61
-	github.com/plgd-dev/sdk v0.0.0-20201028101719-4e0d1c693a90
-	golang.org/x/mobile v0.0.0-20200801112145-973feb4309de // indirect
+	github.com/plgd-dev/cloud v1.1.3-0.20210614184948-03b478890cfe
+	github.com/plgd-dev/go-coap/v2 v2.4.1-0.20210623123453-ab9c0385aa13 // indirect
+	github.com/plgd-dev/kit v0.0.0-20210614190235-99984a49de48
+	github.com/plgd-dev/sdk v0.0.0-20210629135832-d8fdf978c060
+	golang.org/x/tools v0.1.2 // indirect
+	google.golang.org/protobuf v1.27.1
 )

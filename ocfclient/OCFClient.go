@@ -5,16 +5,16 @@ import (
 	"time"
 
 	"github.com/plgd-dev/cloud/grpc-gateway/pb"
+	grpcCloud "github.com/plgd-dev/cloud/pkg/net/grpc"
 	"github.com/plgd-dev/kit/codec/json"
-	kitGrpc "github.com/plgd-dev/kit/net/grpc"
 	"github.com/plgd-dev/kit/security"
-	"github.com/plgd-dev/kit/strings"
 	"github.com/plgd-dev/sdk/app"
 	"github.com/plgd-dev/sdk/local"
 	"github.com/plgd-dev/sdk/local/core"
 	"github.com/plgd-dev/sdk/schema"
 	"github.com/plgd-dev/sdk/schema/acl"
 	"github.com/plgd-dev/sdk/schema/cloud"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type (
@@ -25,9 +25,30 @@ type (
 	}
 )
 
+// func main() {
+// 	cfg := `
+// 	{"accessTokenUrl":"https://192.168.0.101:443/oauth/token?client_id=test\u0026audience=test","authCodeUrl":"https://192.168.0.101:443/authorize?client_id=test","cloudAuthorizationProvider":"plgd","cloudCertificateAuthorities":"-----BEGIN CERTIFICATE-----\nMIIBZTCCAQugAwIBAgIRAJ/FcSs7gabNCBeqr9IYD3UwCgYIKoZIzj0EAwIwEjEQ\nMA4GA1UEAxMHUm9vdCBDQTAeFw0yMTA2MjkxMzQzMjZaFw0yMjA2MjkxMzQzMjZa\nMBIxEDAOBgNVBAMTB1Jvb3QgQ0EwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQM\nFCfq9HJXHssnzd3ryc8hvLDMj9YcYs9p9rTn9iB4HoeX45D0n5ntIouua57TdmB/\nmq1zYt/P3qzOegLCJdRso0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUw\nAwEB/zAdBgNVHQ4EFgQUoDPk57+ucsJVcBI0GLifbQc7FXMwCgYIKoZIzj0EAwID\nSAAwRQIhANpq4bP0AIXyw+BNv76rUV42GOKhShrpvh6f2MJEd4oHAiAMJGF81z6N\nlq3Wui6J8+75BOzW2Bj13n5A0UFK22yTUQ==\n-----END CERTIFICATE-----\n","cloudId":"00000000-0000-0000-0000-000000000001","cloudUrl":"coaps+tcp://192.168.0.101:5684","jwtClaimOwnerId":"sub","signingServerAddress":"192.168.0.101:443"}
+// 	`
+
+// 	c := Ocfclient{cloudConfiguration: pb.ClientConfigurationResponse{}}
+// 	err := c.Initialize("eyJhbGciOiJFUzI1NiIsImtpZCI6IjgyMWEwYTJhLWE0ZWMtNWE3ZS04MGNkLTE1ZTBlMTBlZDg3MyIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiMTkyLjE2OC4wLjEwMS8iXQosImNsaWVudF9pZCI6InRlc3QiLCJleHAiOjE2MjQ5Nzc4NjIKLCJpYXQiOjE2MjQ5NzQyNjIKLCJpc3MiOiIxOTIuMTY4LjAuMTAxLyIsInNjb3BlIjpbIm9wZW5pZCIsInI6ZGV2aWNlaW5mb3JtYXRpb246KiIsInI6cmVzb3VyY2VzOioiLCJ3OnJlc291cmNlczoqIiwidzpzdWJzY3JpcHRpb25zOioiXSwic3ViIjoiMSJ9.WDacNb5RrI6B0V3v-jXcfzmwvIzM8wSFLoMVLF-VqKDp7M558rTEyoQlYiOW1XVliSpE8xzKxThOhn7YAcXkdA", cfg)
+// 	if err == nil {
+// 		fmt.Println("initialized")
+// 	} else {
+// 		fmt.Println(err.Error())
+// 		return
+// 	}
+// 	devices, err := c.Discover(5)
+// 	if err != nil {
+// 		fmt.Println(err.Error())
+// 	} else {
+// 		fmt.Println(devices)
+// 	}
+// }
+
 // Initialize creates and initializes new local client
 func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
-	err := json.Decode([]byte(cloudConfiguration), &c.cloudConfiguration)
+	err := protojson.Unmarshal([]byte(cloudConfiguration), &c.cloudConfiguration)
 	if err != nil {
 		return err
 	}
@@ -46,14 +67,15 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 			SigningServerAddress: c.cloudConfiguration.GetSigningServerAddress(),
 			JWTClaimOwnerID:      c.cloudConfiguration.GetJwtClaimOwnerId(),
 		},
-	}, appCallback, func(err error) {})
+	}, appCallback, nil, func(err error) {})
+
 	if err != nil {
 		return err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
-	ctx = kitGrpc.CtxWithToken(ctx, accessToken)
+	ctx = grpcCloud.CtxWithToken(ctx, accessToken)
 	err = localClient.Initialization(ctx)
 	if err != nil {
 		return err
@@ -89,9 +111,11 @@ func (c *Ocfclient) Discover(timeoutSeconds int) (string, error) {
 func getCloudConfiguration(ctx context.Context, device *core.Device, links schema.ResourceLinks) (out interface{}, _ error) {
 	var link schema.ResourceLink
 	for _, l := range links {
-		if strings.SliceContains(l.ResourceTypes, cloud.ConfigurationResourceType) {
-			link = l
-			break
+		for _, rt := range l.ResourceTypes {
+			if rt == cloud.ConfigurationResourceType {
+				link = l
+				break
+			}
 		}
 	}
 
@@ -107,7 +131,7 @@ func getCloudConfiguration(ctx context.Context, device *core.Device, links schem
 func (c *Ocfclient) OwnDevice(deviceID, accessToken string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	ctx = kitGrpc.CtxWithToken(ctx, accessToken)
+	ctx = grpcCloud.CtxWithToken(ctx, accessToken)
 	return c.localClient.OwnDevice(ctx, deviceID, local.WithOTM(local.OTMType_JustWorks))
 }
 
