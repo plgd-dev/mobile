@@ -25,27 +25,6 @@ type (
 	}
 )
 
-// func main() {
-// 	cfg := `
-// 	{"accessTokenUrl":"https://192.168.0.101:443/oauth/token?client_id=test\u0026audience=test","authCodeUrl":"https://192.168.0.101:443/authorize?client_id=test","cloudAuthorizationProvider":"plgd","cloudCertificateAuthorities":"-----BEGIN CERTIFICATE-----\nMIIBZTCCAQugAwIBAgIRAJ/FcSs7gabNCBeqr9IYD3UwCgYIKoZIzj0EAwIwEjEQ\nMA4GA1UEAxMHUm9vdCBDQTAeFw0yMTA2MjkxMzQzMjZaFw0yMjA2MjkxMzQzMjZa\nMBIxEDAOBgNVBAMTB1Jvb3QgQ0EwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQM\nFCfq9HJXHssnzd3ryc8hvLDMj9YcYs9p9rTn9iB4HoeX45D0n5ntIouua57TdmB/\nmq1zYt/P3qzOegLCJdRso0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUw\nAwEB/zAdBgNVHQ4EFgQUoDPk57+ucsJVcBI0GLifbQc7FXMwCgYIKoZIzj0EAwID\nSAAwRQIhANpq4bP0AIXyw+BNv76rUV42GOKhShrpvh6f2MJEd4oHAiAMJGF81z6N\nlq3Wui6J8+75BOzW2Bj13n5A0UFK22yTUQ==\n-----END CERTIFICATE-----\n","cloudId":"00000000-0000-0000-0000-000000000001","cloudUrl":"coaps+tcp://192.168.0.101:5684","jwtClaimOwnerId":"sub","signingServerAddress":"192.168.0.101:443"}
-// 	`
-
-// 	c := Ocfclient{cloudConfiguration: pb.ClientConfigurationResponse{}}
-// 	err := c.Initialize("eyJhbGciOiJFUzI1NiIsImtpZCI6IjgyMWEwYTJhLWE0ZWMtNWE3ZS04MGNkLTE1ZTBlMTBlZDg3MyIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiMTkyLjE2OC4wLjEwMS8iXQosImNsaWVudF9pZCI6InRlc3QiLCJleHAiOjE2MjQ5Nzc4NjIKLCJpYXQiOjE2MjQ5NzQyNjIKLCJpc3MiOiIxOTIuMTY4LjAuMTAxLyIsInNjb3BlIjpbIm9wZW5pZCIsInI6ZGV2aWNlaW5mb3JtYXRpb246KiIsInI6cmVzb3VyY2VzOioiLCJ3OnJlc291cmNlczoqIiwidzpzdWJzY3JpcHRpb25zOioiXSwic3ViIjoiMSJ9.WDacNb5RrI6B0V3v-jXcfzmwvIzM8wSFLoMVLF-VqKDp7M558rTEyoQlYiOW1XVliSpE8xzKxThOhn7YAcXkdA", cfg)
-// 	if err == nil {
-// 		fmt.Println("initialized")
-// 	} else {
-// 		fmt.Println(err.Error())
-// 		return
-// 	}
-// 	devices, err := c.Discover(5)
-// 	if err != nil {
-// 		fmt.Println(err.Error())
-// 	} else {
-// 		fmt.Println(devices)
-// 	}
-// }
-
 // Initialize creates and initializes new local client
 func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 	err := protojson.Unmarshal([]byte(cloudConfiguration), &c.cloudConfiguration)
