@@ -5,16 +5,16 @@ import (
 	"time"
 
 	"github.com/plgd-dev/cloud/grpc-gateway/pb"
+	grpcCloud "github.com/plgd-dev/cloud/pkg/net/grpc"
 	"github.com/plgd-dev/kit/codec/json"
-	kitGrpc "github.com/plgd-dev/kit/net/grpc"
 	"github.com/plgd-dev/kit/security"
-	"github.com/plgd-dev/kit/strings"
 	"github.com/plgd-dev/sdk/app"
 	"github.com/plgd-dev/sdk/local"
 	"github.com/plgd-dev/sdk/local/core"
 	"github.com/plgd-dev/sdk/schema"
 	"github.com/plgd-dev/sdk/schema/acl"
 	"github.com/plgd-dev/sdk/schema/cloud"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type (
@@ -27,7 +27,7 @@ type (
 
 // Initialize creates and initializes new local client
 func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
-	err := json.Decode([]byte(cloudConfiguration), &c.cloudConfiguration)
+	err := protojson.Unmarshal([]byte(cloudConfiguration), &c.cloudConfiguration)
 	if err != nil {
 		return err
 	}
@@ -46,14 +46,15 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 			SigningServerAddress: c.cloudConfiguration.GetSigningServerAddress(),
 			JWTClaimOwnerID:      c.cloudConfiguration.GetJwtClaimOwnerId(),
 		},
-	}, appCallback, func(err error) {})
+	}, appCallback, nil, func(err error) {})
+
 	if err != nil {
 		return err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
-	ctx = kitGrpc.CtxWithToken(ctx, accessToken)
+	ctx = grpcCloud.CtxWithToken(ctx, accessToken)
 	err = localClient.Initialization(ctx)
 	if err != nil {
 		return err
@@ -89,9 +90,11 @@ func (c *Ocfclient) Discover(timeoutSeconds int) (string, error) {
 func getCloudConfiguration(ctx context.Context, device *core.Device, links schema.ResourceLinks) (out interface{}, _ error) {
 	var link schema.ResourceLink
 	for _, l := range links {
-		if strings.SliceContains(l.ResourceTypes, cloud.ConfigurationResourceType) {
-			link = l
-			break
+		for _, rt := range l.ResourceTypes {
+			if rt == cloud.ConfigurationResourceType {
+				link = l
+				break
+			}
 		}
 	}
 
@@ -107,7 +110,7 @@ func getCloudConfiguration(ctx context.Context, device *core.Device, links schem
 func (c *Ocfclient) OwnDevice(deviceID, accessToken string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	ctx = kitGrpc.CtxWithToken(ctx, accessToken)
+	ctx = grpcCloud.CtxWithToken(ctx, accessToken)
 	return c.localClient.OwnDevice(ctx, deviceID, local.WithOTM(local.OTMType_JustWorks))
 }
 

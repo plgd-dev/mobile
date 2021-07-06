@@ -1,6 +1,6 @@
 import UIKit
 import Flutter
-import Ocfclient
+import OCFClient
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {

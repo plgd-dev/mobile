@@ -1,1 +1,1 @@
-gomobile bind --target ios -bundleid dev.plgd -o ../ios/Frameworks/OCFClient.framework
+gomobile bind --target ios/arm64 -bundleid dev.plgd -o ../ios/Frameworks/OCFClient.framework

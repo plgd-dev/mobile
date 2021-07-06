@@ -10,7 +10,6 @@ class Device {
   String ownershipStatus;
   CloudResourceConfiguration cloudConfiguration;
   List<Resources> resources;
-  List<Endpoints> endpoints;
 
   Device(
       {this.id,
@@ -23,8 +22,7 @@ class Device {
       this.ownership,
       this.ownershipStatus,
       this.cloudConfiguration,
-      this.resources,
-      this.endpoints});
+      this.resources});
 
   bool isOwnedBy(String ownerId) {
     if (!this.isSecured || !this.ownership.owned) {
@@ -38,18 +36,12 @@ class Device {
 
   Device.fromJson(Map<String, dynamic> json) {
     id = json['ID'];
-    if (json['Device'] != null) {
-      resourceTypes = json['Device']['rt'] != null ? json['Device']['rt'].cast<String>() : '';
-      interfaces = json['Device']['if'] != null ? json['Device']['if'] .cast<String>() : '';
-      name = json['Device']['n'];
-      manufacturerName = json['Device']['dmn'];
-      modelNumber = json['Device']['dmno'];
-    } else {
-      resourceTypes = json['Device']['rt'].cast<String>();
-      interfaces = json['Device']['if'].cast<String>();
-      name = json['Device']['n'];
-      manufacturerName = json['Device']['dmn'];
-      modelNumber = json['Device']['dmno'];
+    if (json['Details'] != null) {
+      resourceTypes = json['Details']['rt'] != null ? json['Details']['rt'].cast<String>() : '';
+      interfaces = json['Details']['if'] != null ? json['Details']['if'].cast<String>() : '';
+      name = json['Details']['n'];
+      manufacturerName = json['Details']['dmn'];
+      modelNumber = json['Details']['dmno'];
     }
     isSecured = json['IsSecured'];
     ownership = json['Ownership'] != null ? new Ownership.fromJson(json['Ownership']) : null;
@@ -59,12 +51,6 @@ class Device {
       resources = new List<Resources>();
       json['Resources'].forEach((v) {
         resources.add(new Resources.fromJson(v));
-      });
-    }
-    if (json['Endpoints'] != null) {
-      endpoints = new List<Endpoints>();
-      json['Endpoints'].forEach((v) {
-        endpoints.add(new Endpoints.fromJson(v));
       });
     }
   }
@@ -130,63 +116,18 @@ class CloudResourceConfiguration {
 }
 
 class Resources {
-  String id;
   String href;
   List<String> resourceTypes;
   List<String> interfaces;
-  List<Endpoints> endpoints;
-  String anchor;
-  String deviceID;
-  int instanceID;
-  String title;
-  String supportedContentTypes;
 
   Resources(
-      {this.id,
-      this.href,
+      {this.href,
       this.resourceTypes,
-      this.interfaces,
-      this.endpoints,
-      this.anchor,
-      this.deviceID,
-      this.instanceID,
-      this.title,
-      this.supportedContentTypes});
+      this.interfaces});
 
   Resources.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
     href = json['href'];
     resourceTypes = json['rt'].cast<String>();
     interfaces = json['if'].cast<String>();
-    if (json['eps'] != null) {
-      endpoints = new List<Endpoints>();
-      json['eps'].forEach((v) {
-        endpoints.add(new Endpoints.fromJson(v));
-      });
-    }
-    anchor = json['anchor'];
-    deviceID = json['di'];
-    instanceID = json['ins'];
-    title = json['title'];
-    supportedContentTypes = json['type'];
-  }
-}
-
-class Endpoints {
-  String uRI;
-  int priority;
-
-  Endpoints({this.uRI, this.priority});
-
-  Endpoints.fromJson(Map<String, dynamic> json) {
-    uRI = json['ep'];
-    priority = json['pri'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['ep'] = this.uRI;
-    data['pri'] = this.priority;
-    return data;
   }
 }
