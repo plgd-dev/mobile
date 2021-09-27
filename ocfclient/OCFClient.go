@@ -1,4 +1,4 @@
-package ocfclient
+package Ocfclient
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type (
 	// Ocfclient for working with devices
 	Ocfclient struct {
 		localClient        *local.Client
-		cloudConfiguration pb.ClientConfigurationResponse
+		cloudConfiguration pb.CloudConfigurationResponse
 	}
 )
 
@@ -41,10 +41,8 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 		DeviceCacheExpirationSeconds:      3600,
 		MaxMessageSize:                    512 * 1024,
 		DeviceOwnershipBackend: &local.DeviceOwnershipBackendConfig{
-			AccessTokenURL:       c.cloudConfiguration.GetAccessTokenUrl(),
-			AuthCodeURL:          c.cloudConfiguration.GetAuthCodeUrl(),
 			SigningServerAddress: c.cloudConfiguration.GetSigningServerAddress(),
-			JWTClaimOwnerID:      c.cloudConfiguration.GetJwtClaimOwnerId(),
+			JWTClaimOwnerID:      c.cloudConfiguration.GetJwtOwnerClaim(),
 		},
 	}, appCallback, nil, func(err error) {})
 

@@ -2,27 +2,24 @@ import 'dart:async';
 
 import 'package:client/appLocalizations.dart';
 import 'package:client/globals.dart';
+import 'package:client/screens/configurationScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:client/appConstants.dart';
 import 'package:client/screens/devicesScreen.dart';
 import 'package:client/screens/setupScreen.dart';
-import 'package:client/screens/splashScreen.dart';
 import 'package:client/services/ocfClient.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-bool _isSetupRequired = true;
+import 'screens/configurationDetails.dart';
 
 Future main() async {
     WidgetsFlutterBinding.ensureInitialized();
     await Globals.initialize();
-    _isSetupRequired = !Globals.localStorage.containsKey(OCFClient.cloudConfigurationStorageKey);
     runZonedGuarded(
       () => runApp(MyApp()),
       (error, stackTrace) async {
         await Globals.sentry.captureException(
-          exception: error,
+          error,
           stackTrace: stackTrace,
         );
       },
@@ -57,11 +54,12 @@ class MyApp extends StatelessWidget {
         const Locale('ko', ''),
         const Locale('zh', '')
       ],
-      initialRoute: _isSetupRequired ? '/setup' : '/splash',
+      initialRoute: '/setup',
       routes: {
         '/setup': (context) => SetupScreen(),
-        '/splash': (context) => SplashScreen(),
         '/devices': (context) => DevicesScreen(),
+        '/configuration': (context) => ConfigurationScreen(),
+        '/configurationDetails': (context) => ConfigurationDetails(),
       }
     );
   }
@@ -71,7 +69,7 @@ class MyApp extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          content: Text(AppLocalizations.of(context).resetApplicationDialogText),
+          content: Text(AppLocalizations.of(context).switchPlgdInstanceDialogText),
           actions: <Widget>[
             FlatButton(
               child: Text(AppLocalizations.of(context).resetApplicationDialogCancelButton),
@@ -91,10 +89,10 @@ class MyApp extends StatelessWidget {
   }
 
   static Future reset(BuildContext context) async {
-    var storage = await SharedPreferences.getInstance();
-    await storage.remove(OCFClient.cloudConfigurationStorageKey);
     OCFClient.destroy();
     await CookieManager.instance().deleteAllCookies();
-    Navigator.of(context).pushNamedAndRemoveUntil('/setup', (route) => false);
+    if (ModalRoute.of(context).settings.name != '/setup') {
+      Navigator.of(context).pushNamedAndRemoveUntil('/setup', (route) => false);
+    }
   }
 }

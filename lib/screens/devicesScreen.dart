@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:client/appConstants.dart';
 import 'package:client/appLocalizations.dart';
 import 'package:client/components/toastNotification.dart';
+import 'package:client/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:client/components/deviceDetails.dart';
@@ -49,7 +50,8 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: TopBar(context, AppLocalizations.of(context).devicesScreenTitle,
-        showLogout: true,
+        action: () => MyApp.showResetAppConfirmationDialog(context, () => {}),
+        actionIcon: Icons.logout,
       ),
       body: DefaultTabController(
         length: 1,

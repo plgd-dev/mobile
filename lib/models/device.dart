@@ -8,7 +8,6 @@ class Device {
   bool isSecured;
   Ownership ownership;
   String ownershipStatus;
-  CloudResourceConfiguration cloudConfiguration;
   List<Resources> resources;
 
   Device(
@@ -21,7 +20,6 @@ class Device {
       this.isSecured,
       this.ownership,
       this.ownershipStatus,
-      this.cloudConfiguration,
       this.resources});
 
   bool isOwnedBy(String ownerId) {
@@ -46,7 +44,6 @@ class Device {
     isSecured = json['IsSecured'];
     ownership = json['Ownership'] != null ? new Ownership.fromJson(json['Ownership']) : null;
     ownershipStatus = json['OwnershipStatus'];
-    cloudConfiguration = json['Details'] != null ? new CloudResourceConfiguration.fromJson(json['Details']) : null;
     if (json['Resources'] != null) {
       resources = new List<Resources>();
       json['Resources'].forEach((v) {
@@ -92,27 +89,9 @@ class Ownership {
     instanceID = json['id'];
     supportedCredentialTypes = json['sct'];
     selectedOwnerTransferMethod = json['oxmsel'];
-    interfaces = json['if'].cast<String>();
-    resourceTypes = json['rt'].cast<String>();
+    interfaces = json['if']?.cast<String>();
+    resourceTypes = json['rt']?.cast<String>();
   }
-}
-
-class CloudResourceConfiguration {
-	String authorizationProvider;
-	String cloudID;
-	String cloudURL;
-	int lastErrorCode;
-	String provisioningStatus;
-
-	CloudResourceConfiguration({this.authorizationProvider, this.cloudID, this.cloudURL, this.lastErrorCode, this.provisioningStatus});
-
-	CloudResourceConfiguration.fromJson(Map<String, dynamic> json) {
-		authorizationProvider = json['apn'];
-		cloudID = json['sid'];
-		cloudURL = json['cis'];
-		lastErrorCode = json['clec'];
-		provisioningStatus = json['cps'];
-	}
 }
 
 class Resources {

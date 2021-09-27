@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'appConstants.dart';
 import 'l10n/messages_all.dart';
 
 class AppLocalizations {
@@ -39,6 +40,10 @@ class AppLocalizations {
 
   String get unableToFetchConfigurationNotification {
     return Intl.message('Unable to fetch the configuration.', name: 'unableToFetchConfigurationNotification');
+  }
+  
+  String get unableToFetchOpenIdConfigurationNotification {
+    return Intl.message('Unable to fetch the OpenId configuration.', name: 'unableToFetchOpenIdConfigurationNotification');
   }
 
   String get invalidConfigurationNotification {
@@ -85,8 +90,8 @@ class AppLocalizations {
     return Intl.message('FACTORY RESET', name: 'factoryResetButton');
   }
 
-  String get resetApplicationDialogText {
-    return Intl.message('Do you want to reset the application?', name: 'resetApplicationDialogText');
+  String get switchPlgdInstanceDialogText {
+    return Intl.message('Do you want to switch to different plgd instance?', name: 'switchPlgdInstanceDialogText');
   }
 
   String get resetApplicationDialogYesButton {
@@ -98,7 +103,47 @@ class AppLocalizations {
   }
 
   String get devicesScreenTitle {
-    return Intl.message('DEVICES', name: 'devicesScreenTitle');
+    return Intl.message('Devices', name: 'devicesScreenTitle');
+  }
+
+  String get setDefaultRedirectUrlHint {
+    return Intl.message('Set \'${AppConstants.authRedirectUri}\' as allowed redirect url.', name: 'setDefaultRedirectUrlHint');
+  }
+
+  String get saveConfigurationButton {
+    return Intl.message('Save Configuration', name: 'saveConfigurationButton');
+  }
+
+  String get deviceOAuthClientConfigurationGroupName {
+    return Intl.message('Device Client', name: 'deviceOAuthClientConfigurationGroupName');
+  }
+
+  String get mobileAppOAuthClientConfigurationGroupName {
+    return Intl.message('Mobile Application Client', name: 'mobileAppOAuthClientConfigurationGroupName');
+  }
+
+  String get skipOAuthConfigurationHint {
+    return Intl.message('* Skip if using plgd bundle with default OAuth configuration', name: 'skipOAuthConfigurationHint');
+  }
+
+  String get authorizationConfigurationGroupName {
+    return Intl.message('Authorization', name: 'authorizationConfigurationGroupName');
+  }
+
+  String get missingConfigurationNameNotification {
+    return Intl.message('Configuration name is required.', name: 'missingConfigurationNameNotification');
+  }
+
+  String get generalConfigurationGroupName {
+    return Intl.message('General', name: 'generalConfigurationGroupName');
+  }
+  
+  String get configurationDetailsScreenTitle {
+    return Intl.message('Details', name: 'configurationDetailsScreenTitle');
+  }
+  
+  String get configurationScreenTitle {
+    return Intl.message('Configuration', name: 'configurationScreenTitle');
   }
 }
 

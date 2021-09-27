@@ -1,13 +1,14 @@
-import 'dart:convert';
-
 import 'package:client/appLocalizations.dart';
+import 'package:client/components/oauthHelper.dart';
 import 'package:client/components/toastNotification.dart';
+import 'package:client/models/cloudConfiguration.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:client/appConstants.dart';
 import 'package:client/models/device.dart';
 import 'package:client/services/ocfClient.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DeviceDetails extends StatefulWidget {
   DeviceDetails({Key key, this.device}) : super(key: key);
@@ -21,6 +22,13 @@ class DeviceDetails extends StatefulWidget {
 class _DeviceDetailsWidgetState extends State<DeviceDetails> {
   bool _userRequestInProgress = false;
   bool _tryGetCodeInBackground = false;
+  CloudConfiguration _cloudConfiguration;
+  
+  @override
+  initState() {
+    super.initState();
+    _cloudConfiguration = CloudConfiguration.getSelected(CloudConfiguration.load());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +52,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
               padding: EdgeInsets.only(bottom: 10, left: 15, right: 15),
               child: _getActionButton(this.widget.device)
             ),
-            OCFClient.getCodeRequestWidget(context, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding, _onHttpError)
+            OAuthHelper.getOnboardingCodeRequestWidget(context, _cloudConfiguration, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding, _onHttpError)
           ]
         )
       )
@@ -54,8 +62,8 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
   Widget _getActionButton(Device device) {
     if (device.ownershipStatus == 'readytobeowned') {
       return _getFlatButton(
-        Colors.green,
-        Colors.green.withAlpha(120),
+        AppConstants.mainColor,
+        AppConstants.mainColor.withAlpha(120),
         () { 
           setState(() { 
             _userRequestInProgress = true; 
@@ -89,7 +97,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
       color: activeColor,
       splashColor: AppConstants.yellowMainColor,
       disabledColor: disabledColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
       padding: const EdgeInsets.all(8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -98,13 +106,13 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
             SizedBox(width: 20, height: 20, child: SpinKitRing(color: Colors.white, size: 20, lineWidth: 2.0))
             : Icon(icon, color: onPressed == null ? Colors.white60 : Colors.white),
           SizedBox(width: 10),
-          Text(buttonText, style: TextStyle(color: onPressed == null ? Colors.white60 : Colors.white, fontSize: 16, fontFamily: AppConstants.topBarFont))
+          Text(buttonText, style: GoogleFonts.mulish(color: onPressed == null ? Colors.white60 : Colors.white, fontSize: 16))
         ]
       )
     );
   }
 
-  void _onboard(String response, BuildContext context) async {
+  void _onboard(String code, BuildContext context) async {
     var deviceID = await OCFClient.ownDevice(this.widget.device.id);
     if (deviceID == null) {
       _cancelOnboarding();
@@ -118,9 +126,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
       return;
     }
 
-    Map<String, dynamic> jsonResponse = jsonDecode(response);
-    String authCode = jsonResponse['code'];
-    if (!await OCFClient.onboardDevice(deviceID, authCode)) {
+    if (!await OCFClient.onboardDevice(deviceID, code)) {
       _cancelOnboarding();
       ToastNotification.show(context, AppLocalizations.of(context).unableToOnboardNotification);
       return;

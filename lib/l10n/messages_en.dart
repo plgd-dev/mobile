@@ -32,7 +32,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardButton" : MessageLookupByLibrary.simpleMessage("ONBOARD"),
     "requestApplicationSetupNotification" : MessageLookupByLibrary.simpleMessage("Please setup your application again."),
     "resetApplicationDialogCancelButton" : MessageLookupByLibrary.simpleMessage("Cancel"),
-    "resetApplicationDialogText" : MessageLookupByLibrary.simpleMessage("Do you want to reset the application?"),
     "resetApplicationDialogYesButton" : MessageLookupByLibrary.simpleMessage("Yes"),
     "unableToAuthenticateNotification" : MessageLookupByLibrary.simpleMessage("An error occurred during authentication."),
     "unableToDiscoverDevicesNotification" : MessageLookupByLibrary.simpleMessage("An error occurred during device discovery."),
