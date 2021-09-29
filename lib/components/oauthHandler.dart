@@ -72,6 +72,11 @@ class _OAuthHandlerState extends State<OAuthHandler> {
                   errorOccured();
                 },
                 onLoadStop: (InAppWebViewController controller, Uri url) async {
+                  if (url.toString().startsWith(AppConstants.authRedirectUri)) {
+                    // valid redirect url is handled on onLoadError as custom scheme is not supported
+                    // but in case of android also onLoadStop is invoked
+                    return;
+                  }
                   // other url, not OAuth2.0 related are promting user to login
                   if (!url.toString().contains('/authorize?') && this.promptForCredentials != null) {
                     this.promptForCredentials();

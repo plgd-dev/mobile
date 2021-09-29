@@ -83,11 +83,15 @@ class AppLocalizations {
   }
 
   String get onboardButton {
-    return Intl.message('ONBOARD', name: 'onboardButton');
+    return Intl.message('Onboard', name: 'onboardButton');
   }
 
   String get factoryResetButton {
-    return Intl.message('FACTORY RESET', name: 'factoryResetButton');
+    return Intl.message('Factory reset', name: 'factoryResetButton');
+  }
+  
+  String get ownedByOtherButtonHint {
+    return Intl.message('Owned by other', name: 'ownedByOtherButtonHint');
   }
 
   String get switchPlgdInstanceDialogText {

@@ -11,6 +11,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:client/components/toastNotification.dart';
 import 'package:client/models/cloudConfiguration.dart';
 import 'package:client/services/ocfClient.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SetupScreen extends StatefulWidget {
   @override
@@ -39,10 +40,10 @@ class _SetupState extends State<SetupScreen> {
               alignment: Alignment.topCenter,
               color: Colors.white,
               child: Padding(
-                padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.1),
+                padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.2),
                 child: Image(
                   image: AssetImage('assets/logo.png'),
-                  width: 220
+                  width: 240
                 )
               )
             ),
@@ -67,10 +68,10 @@ class _SetupState extends State<SetupScreen> {
                     child: RichText(
                       text: TextSpan(
                         children: <TextSpan>[
-                          TextSpan(text: AppLocalizations.of(context).continueToPlgdCloudButton),
+                          TextSpan(text: AppLocalizations.of(context).continueToPlgdCloudButton, style: GoogleFonts.mulish()),
                           TextSpan(
                             text: _cloudConfiguration.customName, 
-                            style: TextStyle(fontWeight: FontWeight.bold, color: AppConstants.yellowMainColor)
+                            style: GoogleFonts.mulish(fontWeight: FontWeight.bold, color: AppConstants.yellowMainColor)
                           )
                         ],
                       ),
@@ -85,11 +86,11 @@ class _SetupState extends State<SetupScreen> {
                 padding: EdgeInsets.only(bottom: 15, left: 20, right: 20),
                 child: _setupInProgress ? null : RichText(
                   text: TextSpan(
-                    style: TextStyle(fontStyle: FontStyle.italic, fontSize: 10),
+                    style: GoogleFonts.mulish(fontStyle: FontStyle.italic, fontSize: 12),
                     children: <TextSpan>[
                       TextSpan(
                         text: AppLocalizations.of(context).configureCustomEndpointButton,
-                        style: TextStyle(color: AppConstants.mainColor, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                        style: GoogleFonts.mulish(color: AppConstants.mainColor, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
                         recognizer: TapGestureRecognizer()
                            ..onTap = () => Navigator.of(context).pushNamed('/configuration')
                             .then((cloudConfiguration) { setState(() { _cloudConfiguration = cloudConfiguration; }); })

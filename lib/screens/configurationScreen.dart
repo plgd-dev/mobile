@@ -50,12 +50,11 @@ class _ConfigurationState extends State<ConfigurationScreen> {
       leading: Icon(Icons.check, size: 20, color: cloudConfiguration.id == _selectedConfigurationId ? AppConstants.mainColor : Colors.transparent),
       title: Text(cloudConfiguration.customName, style: GoogleFonts.mulish(color: Colors.black, fontSize: 15)),
       trailing: isDefault ? null : IconButton(
-        icon: Icon(Icons.info_outline),
+        icon: Icon(Icons.mode_edit_outline_outlined),
         iconSize: 20,
-        color: AppConstants.mainColor,
         onPressed: () { Navigator.of(context).pushNamed('/configurationDetails', arguments: cloudConfiguration).then(_refreshAfterUpdate); }
       ),
-      subtitle: Text('${cloudConfiguration.plgdAPIEndpoint}', style: TextStyle(fontSize: 12)),
+      subtitle: Text('${cloudConfiguration.plgdAPIEndpoint}', style: GoogleFonts.mulish(fontSize: 12)),
       minLeadingWidth: 10,
       onTap: () async {
         await CloudConfiguration.saveSelectedConfigurationId(cloudConfiguration.id);

@@ -12,6 +12,7 @@ class OCFClient {
   static final String cloudConfigurationStorageKey = "plgd.dev/cloud-configuration";
   static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/client');
 
+  static String ownerId;
   static bool _isInitialized = false;
   static String _accessToken = '';
   static DateTime _tokenExpirationTime;
@@ -33,6 +34,7 @@ class OCFClient {
         'cloudConfiguration': publicConfiguration
       });
       _isInitialized = true;
+      ownerId = await getOwnerId();
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
         error,
@@ -67,6 +69,21 @@ class OCFClient {
     }
     return null;
   }
+
+  static Future<String> getOwnerId() async {
+    if (!_isInitialized) {
+      throw Exception("OCF Client not initialized");
+    }
+    try {
+      return await _nativeChannel.invokeMethod('getOwnerId');
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        error,
+        stackTrace: stackTrace,
+      );
+    }
+    return null;
+  }
   
   static Future<List<Device>> discoverDevices() async {
     if (!_isInitialized) {
@@ -81,6 +98,27 @@ class OCFClient {
         error,
         stackTrace: stackTrace,
       );
+    }
+    return null;
+  }
+
+  static Future<String> getResource(String deviceId, href) async {
+    if (!_isInitialized) {
+      throw Exception("OCF Client not initialized");
+    }
+    try {
+      var data =  await _nativeChannel.invokeMethod('getResource', <String, String> {
+        'deviceID': deviceId,
+        'href': href
+      });
+      return data;
+    } on PlatformException catch (error, stackTrace) {
+      if (!error.message.contains('AccessDenied')) {
+        await Globals.sentry.captureException(
+          error,
+          stackTrace: stackTrace,
+        );
+      }
     }
     return null;
   }

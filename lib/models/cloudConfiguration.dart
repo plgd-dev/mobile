@@ -80,6 +80,9 @@ class CloudConfiguration {
 
   static List<CloudConfiguration> load() {
     var configs = Globals.localStorage.getString(AppConstants.cloudConfigurationStorageKey);
+    if (configs == null) {
+      return null;
+    }
     Iterable l = json.decode(configs);
     return List<CloudConfiguration>.from(l.map((model)=> CloudConfiguration.fromJson(model)));
   }
@@ -100,7 +103,10 @@ class CloudConfiguration {
 
   static Future<void> verifyDefault() async {
     var cloudConfigurations = load();
-    var defaultConfiguration = CloudConfiguration.getDefault(cloudConfigurations);
+    CloudConfiguration defaultConfiguration;
+    if (cloudConfigurations != null) {
+      defaultConfiguration = CloudConfiguration.getDefault(cloudConfigurations);
+    }
     if (defaultConfiguration == null || defaultConfiguration.authorizationEndpoint == null || defaultConfiguration.tokenEndpoint == null) {
       var defaultConfiguration = CloudConfiguration(
         customName: 'try.plgd.cloud',

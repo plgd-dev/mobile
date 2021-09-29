@@ -20,14 +20,23 @@ class DeviceDetails extends StatefulWidget {
 }
 
 class _DeviceDetailsWidgetState extends State<DeviceDetails> {
+  bool _loadingInProgress = true;
   bool _userRequestInProgress = false;
   bool _tryGetCodeInBackground = false;
   CloudConfiguration _cloudConfiguration;
-  
+
   @override
   initState() {
     super.initState();
     _cloudConfiguration = CloudConfiguration.getSelected(CloudConfiguration.load());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {   
+      if (widget.device.isOwned) {
+        await widget.device.loadOwnership();
+      }
+      setState(() {
+        _loadingInProgress = false;
+      });
+    });
   }
 
   @override
@@ -46,11 +55,13 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
             ),
             Padding(
               padding: EdgeInsets.only(bottom: 65),
-              child: Text(widget.device.name, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))
+              child: Text(widget.device.name, style: GoogleFonts.mulish(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold))
             ),
             Padding(
               padding: EdgeInsets.only(bottom: 10, left: 15, right: 15),
-              child: _getActionButton(this.widget.device)
+              child: _loadingInProgress ?
+                SizedBox(width: 20, height: 20, child: SpinKitRing(color: Colors.white, size: 20, lineWidth: 2.0))
+                : _getActionButton(this.widget.device)
             ),
             OAuthHelper.getOnboardingCodeRequestWidget(context, _cloudConfiguration, false, _tryGetCodeInBackground, (response) => _onboard(response, context), _cancelOnboarding, _onHttpError)
           ]
@@ -60,7 +71,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
   }
 
   Widget _getActionButton(Device device) {
-    if (device.ownershipStatus == 'readytobeowned') {
+    if (!device.isOwned) {
       return _getFlatButton(
         AppConstants.mainColor,
         AppConstants.mainColor.withAlpha(120),
@@ -73,7 +84,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
         AppLocalizations.of(context).onboardButton,
         Icons.cloud_done
       );
-    } else if (device.ownershipStatus == 'owned') {
+    } else if (device.isOwnedByMe()) {
       return _getFlatButton(
         Colors.red,
         Colors.red.withAlpha(120),
@@ -81,13 +92,13 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
         AppLocalizations.of(context).factoryResetButton,
         Icons.cloud_off
       );
-    }
+    } 
     return _getFlatButton(
-      Colors.red,
-      Colors.red.withAlpha(120),
+      AppConstants.yellowMainColor,
+      AppConstants.yellowMainColor.withAlpha(120),
       null,
-      AppLocalizations.of(context).factoryResetButton,
-      Icons.cloud_off
+      AppLocalizations.of(context).ownedByOtherButtonHint,
+      Icons.warning_amber_rounded
     );
   }
   

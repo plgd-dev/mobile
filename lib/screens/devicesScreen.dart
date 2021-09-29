@@ -10,6 +10,7 @@ import 'package:client/components/deviceDetails.dart';
 import 'package:client/components/topBar.dart';
 import 'package:client/models/device.dart';
 import 'package:client/services/ocfClient.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DevicesScreen extends StatefulWidget {
   DevicesScreen({Key key}) : super(key: key);
@@ -49,7 +50,7 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: TopBar(context, AppLocalizations.of(context).devicesScreenTitle,
+      appBar: TopBar(context, '${AppLocalizations.of(context).devicesScreenTitle} (${_deviceList.length})',
         action: () => MyApp.showResetAppConfirmationDialog(context, () => {}),
         actionIcon: Icons.logout,
       ),
@@ -85,8 +86,9 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
       actionPane: SlidableDrawerActionPane(),
       actionExtentRatio: 0.25,
       child: ListTile(
-        title: _getListTitle(device),
-        subtitle: Text('${device.id}', style: TextStyle(fontSize: 12)),
+        title: Text(device.name, style: GoogleFonts.mulish(color: Colors.black, fontSize: 15)),
+        subtitle: Text('${device.id}', style: GoogleFonts.mulish(fontSize: 12)),
+        trailing: device.isOwned ? null : Icon(Icons.fiber_new, size: 28, color: AppConstants.yellowMainColor),
         onTap: () async {
           var refreshDevices = await showModalBottomSheet(
             context: context,
@@ -103,54 +105,6 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
             _refreshIndicatorKey.currentState.show();
         }
       )
-    );
-  }
-
-  Widget _getListTitle(Device device) {
-    if (device.ownershipStatus == 'readytobeowned') {
-      return Row(
-        children: [
-          Icon(Icons.fiber_new_rounded, size: 25, color: AppConstants.yellowMainColor),
-          Flexible(
-            child: RichText(
-              overflow: TextOverflow.ellipsis,
-              strutStyle: StrutStyle(fontSize: 14),
-              text: TextSpan(
-                  style: TextStyle(color: Colors.black),
-                  text: ' ${device.name}'),
-            ),
-          )
-        ]
-      );
-    } else if (device.ownershipStatus == 'owned') {
-      return Row(
-        children: [
-          Icon(Icons.lock_outline, size: 20, color: Colors.green),
-          Flexible(
-            child: RichText(
-              overflow: TextOverflow.ellipsis,
-              strutStyle: StrutStyle(fontSize: 14),
-              text: TextSpan(
-                  style: TextStyle(color: Colors.black),
-                  text: ' ${device.name}'),
-            ),
-          )
-        ]
-      );
-    }
-    return Row(
-      children: [
-        Icon(Icons.lock_outline, size: 20, color: Colors.red),
-        Flexible(
-            child: RichText(
-              overflow: TextOverflow.ellipsis,
-              strutStyle: StrutStyle(fontSize: 14),
-              text: TextSpan(
-                  style: TextStyle(color: Colors.black),
-                  text: ' ${device.name}'),
-            ),
-          )
-      ]
     );
   }
 

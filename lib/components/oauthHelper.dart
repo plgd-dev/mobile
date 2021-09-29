@@ -23,7 +23,7 @@ class OAuthHelper {
   }
 
   static Widget getApplicationTokenRequestWidget(BuildContext context, CloudConfiguration cloudConfiguration, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) {
-    if (cloudConfiguration == null || cloudConfiguration.authorizationEndpoint == null || cloudConfiguration.tokenEndpoint == null) {
+    if (!tryInBackground && !visible) {
       return SizedBox.shrink();
     }
     var verifier = base64UrlEncode(List<int>.generate(32, (i) => _random.nextInt(256)));

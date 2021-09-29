@@ -115,7 +115,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
                 Divider(indent: 10, endIndent: 10, thickness: 2),
                 TextFormField(
                   initialValue: _cloudConfiguration.authorizationServer,
-                  onSaved: (value) { _cloudConfiguration.authorizationServer = value; },
+                  onSaved: (value) { _cloudConfiguration.authorizationServer = value.isEmpty ? _cloudConfiguration.plgdAPIEndpoint : value; },
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.insert_link_rounded),
                     border: InputBorder.none,
@@ -136,7 +136,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
                   children: [
                     TextFormField(
                       initialValue: _cloudConfiguration.mobileAppAuthClientId,
-                      onSaved: (value) { _cloudConfiguration.mobileAppAuthClientId = value; },
+                      onSaved: (value) { _cloudConfiguration.mobileAppAuthClientId = value.isEmpty ? 'test' : value; },
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.badge_outlined),
                         border: InputBorder.none,
@@ -186,7 +186,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
                   children: [
                     TextFormField(
                       initialValue: _cloudConfiguration.deviceAuthProvider,
-                      onSaved: (value) { _cloudConfiguration.deviceAuthProvider = value; },
+                      onSaved: (value) { _cloudConfiguration.deviceAuthProvider = value.isEmpty ? 'plgd' : value; },
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.badge_outlined),
                         border: InputBorder.none,
@@ -197,7 +197,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
                     ),
                     TextFormField(
                       initialValue: _cloudConfiguration.deviceAuthClientId,
-                      onSaved: (value) { _cloudConfiguration.deviceAuthClientId = value; },
+                      onSaved: (value) { _cloudConfiguration.deviceAuthClientId = value.isEmpty ? 'test' : value; },
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.badge_outlined),
                         border: InputBorder.none,
@@ -271,7 +271,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
         return;
     }
     _formKey.currentState.save();
-    if(await _cloudConfiguration.setOpenIdConfiguration()) {
+    if(!await _cloudConfiguration.setOpenIdConfiguration()) {
       ToastNotification.show(context, AppLocalizations.of(context).unableToFetchOpenIdConfigurationNotification);
       return;
     }

@@ -15,7 +15,9 @@ import OCFClient
       (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
         switch (call.method) {
         case "initialize": self.initializeOCFClient(args: call.arguments, result: result)
+        case "getOwnerId": self.getOwnerId(result: result)
         case "discoverDevices": self.discoverDevices(args: call.arguments, result: result)
+        case "getResource": self.getResource(args: call.arguments, result: result)
         case "ownDevice": self.ownDevice(args: call.arguments, result: result)
         case "setAccessForCloud": self.setAccessForCloud(args: call.arguments, result: result)
         case "onboardDevice": self.onboardDevice(args: call.arguments, result: result)
@@ -40,6 +42,16 @@ import OCFClient
         }
         result(true)
     }
+    
+    private func getOwnerId(result: FlutterResult) {
+        var error : NSError?
+        let ownerId = ocfClient.getOwnerID(&error)
+        if (error != nil) {
+            result(FlutterError(code: "-1", message: error!.localizedDescription, details: nil))
+            return;
+        }
+        result(ownerId)
+    }
 
     private func discoverDevices(args: Any?, result: FlutterResult) {
         var error : NSError?
@@ -49,6 +61,17 @@ import OCFClient
             return;
         }
         result(devices)
+    }
+    
+    private func getResource(args: Any?, result: FlutterResult) {
+        let args = args as! [String: String]
+        var error : NSError?
+        let resourceContent = ocfClient.getResource(args["deviceID"], resourceHref: args["href"], error: &error)
+        if (error != nil) {
+            result(FlutterError(code: "-1", message: error!.localizedDescription, details: nil))
+            return;
+        }
+        result(resourceContent)
     }
     
     private func ownDevice(args: Any?, result: FlutterResult) {

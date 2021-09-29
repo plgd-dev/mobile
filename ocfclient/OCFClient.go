@@ -27,7 +27,10 @@ type (
 
 // Initialize creates and initializes new local client
 func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
-	err := protojson.Unmarshal([]byte(cloudConfiguration), &c.cloudConfiguration)
+	u := protojson.UnmarshalOptions{
+		DiscardUnknown: true,
+	}
+	err := u.Unmarshal([]byte(cloudConfiguration), &c.cloudConfiguration)
 	if err != nil {
 		return err
 	}
@@ -60,6 +63,10 @@ func (c *Ocfclient) Initialize(accessToken, cloudConfiguration string) error {
 
 	c.localClient = localClient
 	return nil
+}
+
+func (c *Ocfclient) GetOwnerID() (string, error) {
+	return c.localClient.CoreClient().GetSdkOwnerID()
 }
 
 // Discover devices in the local area
@@ -102,6 +109,23 @@ func getCloudConfiguration(ctx context.Context, device *core.Device, links schem
 		return &err, nil
 	}
 	return &cloudConfiguration, nil
+}
+
+// GetResource retrieves, encodes and returns resource representation of specified resource
+func (c *Ocfclient) GetResource(deviceID, resourceHref string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	var data interface{}
+	err := c.localClient.GetResource(ctx, deviceID, resourceHref, &data)
+	if err != nil || data == nil {
+		return "", err
+	}
+
+	dataJSON, err := json.Encode(data)
+	if err != nil {
+		return "", err
+	}
+	return string(dataJSON), nil
 }
 
 // OwnDevice transfers the ownersip of the device to user represented by the token
