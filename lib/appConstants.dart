@@ -21,5 +21,5 @@ class AppConstants {
   static String deviceAuthClientId = 'cYN3p6lwNcNlOvvUhz55KvDZLQbJeDr5';
   static String deviceAuthAudience = mobileAppAudience;
 
-  static String sentryDSN = 'https://3dab0aeaa28942e8964c0d8f90d493d9@o466634.ingest.sentry.io/5481099';
+  static String sentryDSN = '';
 }
