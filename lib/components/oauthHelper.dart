@@ -29,7 +29,7 @@ class OAuthHelper {
     var verifier = base64UrlEncode(List<int>.generate(32, (i) => _random.nextInt(256)));
     var challenge = base64UrlEncode(sha256.convert(utf8.encode(verifier)).bytes);
     var state = Uuid().v4();
-    var codeUrl = '${cloudConfiguration.authorizationEndpoint}?response_type=code&code_challenge=$challenge&code_challenge_method=S256&client_id=${cloudConfiguration.mobileAppAuthClientId}&redirect_uri=${AppConstants.authRedirectUri}&audience=${cloudConfiguration.mobileAppAudience}&state=$state';
+    var codeUrl = '${cloudConfiguration.authorizationEndpoint}?response_type=code&code_challenge=$challenge&code_challenge_method=S256&client_id=${cloudConfiguration.mobileAppAuthClientId}&redirect_uri=${AppConstants.authRedirectUri}&audience=${cloudConfiguration.mobileAppAudience}&scope=${cloudConfiguration.mobileAuthScopes}&state=$state';
 
     // handling PKCE OAuth flow on our own; flutter_appauth has issues with self-signed certificates
     return _getOAuthWidget(codeUrl, context, visible, tryInBackground, (String code) async {
@@ -55,7 +55,7 @@ class OAuthHelper {
 
   static Widget getOnboardingCodeRequestWidget(BuildContext context, CloudConfiguration cloudConfiguration, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) {
     var state = Uuid().v4();
-    var codeUrl = '${cloudConfiguration.authorizationEndpoint}?response_type=code&client_id=${cloudConfiguration.deviceAuthClientId}&redirect_uri=${AppConstants.authRedirectUri}&audience=${cloudConfiguration.deviceAuthAudience}&state=$state';
+    var codeUrl = '${cloudConfiguration.authorizationEndpoint}?response_type=code&client_id=${cloudConfiguration.deviceAuthClientId}&redirect_uri=${AppConstants.authRedirectUri}&audience=${cloudConfiguration.deviceAuthAudience}&scope=${cloudConfiguration.deviceAuthScopes}&state=$state';
     return _getOAuthWidget(codeUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed, onError);
   }
 

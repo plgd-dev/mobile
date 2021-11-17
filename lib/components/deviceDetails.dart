@@ -137,7 +137,7 @@ class _DeviceDetailsWidgetState extends State<DeviceDetails> {
       return;
     }
 
-    if (!await OCFClient.onboardDevice(deviceID, code)) {
+    if (!await OCFClient.onboardDevice(_cloudConfiguration, deviceID, code)) {
       _cancelOnboarding();
       ToastNotification.show(context, AppLocalizations.of(context).unableToOnboardNotification);
       return;

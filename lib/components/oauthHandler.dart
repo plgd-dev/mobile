@@ -83,7 +83,7 @@ class _OAuthHandlerState extends State<OAuthHandler> {
                     return;
                   }
                 },
-                onReceivedServerTrustAuthRequest: (InAppWebViewController controller, URLAuthenticationChallenge challenge) async {
+                onReceivedServerTrustAuthRequest: (controller, challenge) async {
                   return ServerTrustAuthResponse(action: ServerTrustAuthResponseAction.PROCEED);
                 }
               )

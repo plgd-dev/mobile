@@ -11,15 +11,16 @@ class AppConstants {
   static String tryPlgdCloudEndpoint = 'try.plgd.cloud';
   static String authServer = 'auth.plgd.cloud';
   static String defautPlgdCloudAPIEndpoint = 'api.try.plgd.cloud';
-  static String cloudConfigurationPath = '/.well-known/cloud-configuration';
+  static String cloudConfigurationPath = '/.well-known/hub-configuration';
   static String cloudOIDCPath = '/.well-known/openid-configuration';
   
   static String authRedirectUri = 'cloud.plgd.mobile://login-callback';
   static String mobileAppAuthClientId = 'dcgNAXqB9RTyPXh5ExCqWCeJsw5YpMqL';
   static String mobileAppAudience = 'https://try.plgd.cloud';
-  static String deviceAuthProvider = 'plgd';
-  static String deviceAuthClientId = 'cYN3p6lwNcNlOvvUhz55KvDZLQbJeDr5';
+  static String deviceAuthProvider = 'plgd.mobile';
+  static String deviceAuthClientId = 'dcgNAXqB9RTyPXh5ExCqWCeJsw5YpMqL';
   static String deviceAuthAudience = mobileAppAudience;
+  static String deviceAuthScopes = 'offline_access';
 
   static String sentryDSN = '';
 }

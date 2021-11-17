@@ -9,7 +9,7 @@ class Globals {
 
   static Future initialize() async {
     Globals.localStorage = await SharedPreferences.getInstance();
-    await CloudConfiguration.verifyDefault();
+    await CloudConfiguration.setDefault();
     sentry = SentryClient(SentryOptions(dsn: AppConstants.sentryDSN));
   }
 }

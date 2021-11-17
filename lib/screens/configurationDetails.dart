@@ -115,7 +115,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
                 Divider(indent: 10, endIndent: 10, thickness: 2),
                 TextFormField(
                   initialValue: _cloudConfiguration.authorizationServer,
-                  onSaved: (value) { _cloudConfiguration.authorizationServer = value.isEmpty ? _cloudConfiguration.plgdAPIEndpoint : value; },
+                  onSaved: (value) { _cloudConfiguration.authorizationServer = value.isEmpty ? _removeApiPrefix(_cloudConfiguration.plgdAPIEndpoint) : value; },
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.insert_link_rounded),
                     border: InputBorder.none,
@@ -163,7 +163,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
                         prefixIcon: Icon(Icons.code_outlined),
                         border: InputBorder.none,
                         labelText: 'Scopes',
-                        hintText: 'r:devices,w:devices',
+                        hintText: 'r:*,w:*',
                         contentPadding: EdgeInsets.all(10)
                       ),
                     ),
@@ -186,7 +186,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
                   children: [
                     TextFormField(
                       initialValue: _cloudConfiguration.deviceAuthProvider,
-                      onSaved: (value) { _cloudConfiguration.deviceAuthProvider = value.isEmpty ? 'plgd' : value; },
+                      onSaved: (value) { _cloudConfiguration.deviceAuthProvider = value.isEmpty ? AppConstants.deviceAuthProvider : value; },
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.badge_outlined),
                         border: InputBorder.none,
@@ -265,7 +265,12 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
     );
   }
 
-
+  String _removeApiPrefix(String apiEndpoint) {
+    if (apiEndpoint.startsWith('api.')) {
+      return apiEndpoint.substring(4);
+    }
+    return apiEndpoint;
+  }
   Future<void> saveConfiguration() async {
     if (!_formKey.currentState.validate()) {
         return;
@@ -276,18 +281,7 @@ class _ConfigurationDetailsState extends State<ConfigurationDetails> {
       return;
     }
 
-    var cloudConfigurations = CloudConfiguration.load();
-    for (var i = 0; i < cloudConfigurations.length; i++) {
-      if (cloudConfigurations[i].id == _cloudConfiguration.id) {
-        cloudConfigurations[i] = _cloudConfiguration;
-        await CloudConfiguration.save(cloudConfigurations);
-        Navigator.pop(context, cloudConfigurations);
-        return;
-      }
-    }
-    // newly added
-    cloudConfigurations.add(_cloudConfiguration);
-    await CloudConfiguration.save(cloudConfigurations);
+    var cloudConfigurations = await CloudConfiguration.addOrUpdate(_cloudConfiguration);
     Navigator.pop(context, cloudConfigurations);
   }
 

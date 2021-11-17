@@ -81,7 +81,7 @@ class CloudConfiguration {
   static List<CloudConfiguration> load() {
     var configs = Globals.localStorage.getString(AppConstants.cloudConfigurationStorageKey);
     if (configs == null) {
-      return null;
+      return new List<CloudConfiguration>();
     }
     Iterable l = json.decode(configs);
     return List<CloudConfiguration>.from(l.map((model)=> CloudConfiguration.fromJson(model)));
@@ -90,6 +90,20 @@ class CloudConfiguration {
   static Future<bool> save(List<CloudConfiguration> cloudConfigurations) {
     var json = jsonEncode(cloudConfigurations);
     return Globals.localStorage.setString(AppConstants.cloudConfigurationStorageKey, json);
+  }
+
+  static Future<List<CloudConfiguration>> addOrUpdate(CloudConfiguration cloudConfiguration) async {
+    var cloudConfigurations = CloudConfiguration.load();
+    for (var i = 0; i < cloudConfigurations.length; i++) {
+      if (cloudConfigurations[i].id == cloudConfiguration.id) {
+        cloudConfigurations[i] = cloudConfiguration;
+        await save(cloudConfigurations);
+        return cloudConfigurations;
+      }
+    }
+    cloudConfigurations.add(cloudConfiguration);
+    await CloudConfiguration.save(cloudConfigurations);
+    return cloudConfigurations;
   }
 
   static CloudConfiguration getSelected(List<CloudConfiguration> cloudConfigurations) {
@@ -101,34 +115,31 @@ class CloudConfiguration {
     return cloudConfigurations.singleWhere((configuration) => configuration.id == defaultId, orElse: () { return null; });
   }
 
-  static Future<void> verifyDefault() async {
-    var cloudConfigurations = load();
-    CloudConfiguration defaultConfiguration;
-    if (cloudConfigurations != null) {
-      defaultConfiguration = CloudConfiguration.getDefault(cloudConfigurations);
-    }
-    if (defaultConfiguration == null || defaultConfiguration.authorizationEndpoint == null || defaultConfiguration.tokenEndpoint == null) {
-      var defaultConfiguration = CloudConfiguration(
-        customName: 'try.plgd.cloud',
-        plgdAPIEndpoint: AppConstants.defautPlgdCloudAPIEndpoint,
-        authorizationServer: AppConstants.authServer,
-        mobileAppAuthClientId: AppConstants.mobileAppAuthClientId,
-        mobileAppAudience: AppConstants.mobileAppAudience,
-        deviceAuthProvider: AppConstants.deviceAuthProvider,
-        deviceAuthClientId: AppConstants.deviceAuthClientId,
-        deviceAuthAudience: AppConstants.deviceAuthAudience
-      );
-      defaultConfiguration.id = defaultId;
-      defaultConfiguration.authorizationEndpoint = 'https://${defaultConfiguration.authorizationServer}/authorize';
-      defaultConfiguration.tokenEndpoint = 'https://${defaultConfiguration.authorizationServer}/oauth/token';
+  static Future<void> setDefault() async {
+    var defaultConfiguration = CloudConfiguration(
+      customName: 'try.plgd.cloud',
+      plgdAPIEndpoint: AppConstants.defautPlgdCloudAPIEndpoint,
+      authorizationServer: AppConstants.authServer,
+      mobileAppAuthClientId: AppConstants.mobileAppAuthClientId,
+      mobileAppAudience: AppConstants.mobileAppAudience,
+      deviceAuthProvider: AppConstants.deviceAuthProvider,
+      deviceAuthClientId: AppConstants.deviceAuthClientId,
+      deviceAuthAudience: AppConstants.deviceAuthAudience,
+      deviceAuthScopes: AppConstants.deviceAuthScopes
+    );
+    defaultConfiguration.id = defaultId;
+    defaultConfiguration.authorizationEndpoint = 'https://${defaultConfiguration.authorizationServer}/authorize';
+    defaultConfiguration.tokenEndpoint = 'https://${defaultConfiguration.authorizationServer}/oauth/token';
 
-      await save(List<CloudConfiguration>.of([defaultConfiguration]));
+    var cloudConfigurations = await addOrUpdate(defaultConfiguration);
+    var selected = getSelected(cloudConfigurations);
+    if (selected == null) {
       await Globals.localStorage.setString(AppConstants.selectedCloudConfigurationStorageKey, defaultConfiguration.id);
     }
   }
 
     Future<bool> setOpenIdConfiguration() async {
-    var httpClient = HttpClient()..badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
+    var httpClient = HttpClient()..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
     var ioClient = new IOClient(httpClient);
 
     Map<String, dynamic> oidcConfigurationResponse;

@@ -23,7 +23,7 @@ class OCFClient {
       return false;
     }
 
-    var publicConfiguration = await _fetchPublicConfiguration('https://'+cloudConfiguration.plgdAPIEndpoint);
+    var publicConfiguration = await _fetchPublicConfiguration('https://${cloudConfiguration.plgdAPIEndpoint}');
     if (publicConfiguration == null) {
       return false;
     }
@@ -31,7 +31,8 @@ class OCFClient {
     try {
       await _nativeChannel.invokeMethod("initialize", <String, String> {
         'accessToken': accessToken,
-        'cloudConfiguration': publicConfiguration
+        'cloudConfiguration': publicConfiguration,
+        'signingServerAddress': '${cloudConfiguration.plgdAPIEndpoint}:443'
       });
       _isInitialized = true;
       ownerId = await getOwnerId();
@@ -43,12 +44,31 @@ class OCFClient {
     }
     if (_isInitialized) {
       _accessToken = accessToken;
-      _tokenExpirationTime = JwtDecoder.getExpirationDate(accessToken).subtract(const Duration(hours: 1));
+      try {
+        _tokenExpirationTime = JwtDecoder.getExpirationDate(accessToken).subtract(const Duration(hours: 1));
+      } catch (error, stackTrace) {
+        _tokenExpirationTime = DateTime.utc(275760,09,13);
+        await Globals.sentry.captureException(
+          error,
+          stackTrace: stackTrace,
+        );
+      }
     }
     return _isInitialized;
   }
 
-  static void destroy() {
+  static Future<void> destroy() async {
+    if (!_isInitialized) {
+      return;
+    }
+    try {
+      _nativeChannel.invokeMethod('close');
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        error,
+        stackTrace: stackTrace,
+      );
+    }
     _isInitialized = false;
   }
 
@@ -160,14 +180,15 @@ class OCFClient {
     return false;
   }
 
-  static Future<bool> onboardDevice(String deviceID, String authCode) async {
+  static Future<bool> onboardDevice(CloudConfiguration cloudConfiguration, String deviceID, String authCode) async {
     if (!_isInitialized) {
       throw("OCF Client not initialized");
     }
     try {
       await _nativeChannel.invokeMethod('onboardDevice', <String, String> {
         'deviceID': deviceID,
-        'authCode': authCode ?? ""
+        'authCode': authCode ?? "",
+        'authorizationProvider': cloudConfiguration.deviceAuthProvider
       });
       return true;
     } on PlatformException catch (error, stackTrace) {

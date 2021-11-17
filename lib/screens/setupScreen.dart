@@ -110,7 +110,11 @@ class _SetupState extends State<SetupScreen> {
   Future _initializeOCFClient(String accessToken) async {
     var isInitialized = await OCFClient.initialize(_cloudConfiguration, accessToken);
     if (isInitialized) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/devices', (route) => false);
+      setState(() {
+        _setupInProgress = false;
+        _tryGetTokenInBackground = false;
+      });
+      Navigator.of(context).pushNamed('/devices');
     } else {
       setState(() {
         _setupInProgress = false;

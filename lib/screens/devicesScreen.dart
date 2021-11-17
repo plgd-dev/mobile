@@ -53,6 +53,10 @@ class _DevicesState extends State<DevicesScreen> with SingleTickerProviderStateM
       appBar: TopBar(context, '${AppLocalizations.of(context).devicesScreenTitle} (${_deviceList.length})',
         action: () => MyApp.showResetAppConfirmationDialog(context, () => {}),
         actionIcon: Icons.logout,
+        onPop: () {
+          OCFClient.destroy();
+          Navigator.of(context).pop();
+        },
       ),
       body: DefaultTabController(
         length: 1,
