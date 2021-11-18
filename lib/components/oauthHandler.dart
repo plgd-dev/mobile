@@ -2,7 +2,6 @@ import 'package:client/appConstants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class OAuthHandler extends StatefulWidget {
@@ -24,7 +23,6 @@ class _OAuthHandlerState extends State<OAuthHandler> {
   final Function errorOccured;
   String authOrigin;
   InAppWebViewController _controller;
-  bool _loadingInProgress = false;
 
   _OAuthHandlerState(this.authUrl, this.promptForCredentials, this.authCompleted, this.errorOccured);
 
@@ -39,17 +37,8 @@ class _OAuthHandlerState extends State<OAuthHandler> {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         return Stack(
-          children: [
-            Visibility(
-              visible: _loadingInProgress,
-              maintainState: true,
-              child: SpinKitRing(color: AppConstants.blueMainColor, size: 30, lineWidth: 2.0)
-            ),
-            Visibility(
-              visible: !_loadingInProgress,
-              maintainState: true,
-              child: InAppWebView(
-                initialUrl: authUrl,
+          children: [InAppWebView(
+                initialUrlRequest: URLRequest(url: Uri.parse(authUrl)),
                 initialOptions: InAppWebViewGroupOptions(
                     crossPlatform: InAppWebViewOptions(
                       userAgent: 'Mozilla/5.0 Google'
@@ -67,38 +56,37 @@ class _OAuthHandlerState extends State<OAuthHandler> {
                   });
 
                 },
-                onLoadError: (InAppWebViewController controller, String url, int code, String message) {
+                onLoadError: (InAppWebViewController controller, Uri url, int code, String message) {
                   if (code == 102) { // apple signin returns 102 what is not an error
                     return;
                   }
-                  errorOccured();
-                },
-                onLoadHttpError: (InAppWebViewController controller, String url, int statusCode, String description) {
-                  errorOccured();
-                },
-                onLoadStop: (InAppWebViewController controller, String url) async {
-                  // in case redirect url is requested, expected content will be already present
-                  if (url.startsWith(authOrigin)) { 
-                    _controller.evaluateJavascript(source: "(function(){window.flutter_inappwebview.callHandler('handleOAuthResponse', document.documentElement.innerText)})();");
+                  if (url.toString().startsWith(AppConstants.authRedirectUri)) {
+                    var code = url.queryParameters['code'];
+                    authCompleted(code);
                     return;
                   }
-
+                    
+                  errorOccured();
+                },
+                onLoadHttpError: (InAppWebViewController controller, Uri url, int statusCode, String description) {
+                  errorOccured();
+                },
+                onLoadStop: (InAppWebViewController controller, Uri url) async {
+                  if (url.toString().startsWith(AppConstants.authRedirectUri)) {
+                    // valid redirect url is handled on onLoadError as custom scheme is not supported
+                    // but in case of android also onLoadStop is invoked
+                    return;
+                  }
                   // other url, not OAuth2.0 related are promting user to login
-                  if (!url.contains('/authorize?')) {
-                    setState(() { _loadingInProgress = false; });
+                  if (!url.toString().contains('/authorize?') && this.promptForCredentials != null) {
                     this.promptForCredentials();
                     return;
                   }
                 },
-                onLoadStart: (InAppWebViewController controller, String url) {
-                  if (url.startsWith(authOrigin))
-                    setState(() { _loadingInProgress = true; });
-                },
-                onReceivedServerTrustAuthRequest: (InAppWebViewController controller, ServerTrustChallenge challenge) async {
+                onReceivedServerTrustAuthRequest: (controller, challenge) async {
                   return ServerTrustAuthResponse(action: ServerTrustAuthResponseAction.PROCEED);
                 }
               )
-            )
           ]
         );
       }

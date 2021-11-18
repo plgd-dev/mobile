@@ -32,7 +32,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardButton" : MessageLookupByLibrary.simpleMessage("连接云平台"),
     "requestApplicationSetupNotification" : MessageLookupByLibrary.simpleMessage("请重置应用程序"),
     "resetApplicationDialogCancelButton" : MessageLookupByLibrary.simpleMessage("取消"),
-    "resetApplicationDialogText" : MessageLookupByLibrary.simpleMessage("是否重置应用程序？"),
     "resetApplicationDialogYesButton" : MessageLookupByLibrary.simpleMessage("是"),
     "unableToAuthenticateNotification" : MessageLookupByLibrary.simpleMessage("身份验证期间发生错误"),
     "unableToDiscoverDevicesNotification" : MessageLookupByLibrary.simpleMessage("设备发现过程出错"),

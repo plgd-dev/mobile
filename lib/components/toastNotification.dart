@@ -6,7 +6,7 @@ class ToastNotification {
   static void show(BuildContext context, String text) {
     Flushbar(
       message: text,
-      backgroundColor: AppConstants.blueMainColor,
+      backgroundColor: AppConstants.mainColor,
       flushbarPosition: FlushbarPosition.TOP,
       margin: EdgeInsets.all(5),
       borderRadius: 10,

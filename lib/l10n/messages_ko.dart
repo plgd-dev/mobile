@@ -32,7 +32,6 @@ class MessageLookup extends MessageLookupByLibrary {
     "onboardButton" : MessageLookupByLibrary.simpleMessage("온보딩"),
     "requestApplicationSetupNotification" : MessageLookupByLibrary.simpleMessage("응용 프로그램을 다시 설정하십시요"),
     "resetApplicationDialogCancelButton" : MessageLookupByLibrary.simpleMessage("취소"),
-    "resetApplicationDialogText" : MessageLookupByLibrary.simpleMessage("응용 프로그램을 재설정하시겠습니까?"),
     "resetApplicationDialogYesButton" : MessageLookupByLibrary.simpleMessage("확인"),
     "unableToAuthenticateNotification" : MessageLookupByLibrary.simpleMessage("인증 진행중에 에러가 발생했습니다"),
     "unableToDiscoverDevicesNotification" : MessageLookupByLibrary.simpleMessage("장치 검색 중 에러 발생"),

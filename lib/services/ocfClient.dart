@@ -1,82 +1,108 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:client/appConstants.dart';
 import 'package:client/globals.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:client/components/oauthHandler.dart';
 import 'package:client/models/cloudConfiguration.dart';
 import 'package:client/models/device.dart';
+import 'package:http/io_client.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:sentry/sentry.dart' as sentry;
 
 class OCFClient {
   static final String cloudConfigurationStorageKey = "plgd.dev/cloud-configuration";
   static final MethodChannel _nativeChannel = MethodChannel('plgd.dev/client');
 
+  static String ownerId;
   static bool _isInitialized = false;
   static String _accessToken = '';
   static DateTime _tokenExpirationTime;
-  static CloudConfiguration _cloudConfiguration;
   static bool isTokenExpired() => DateTime.now().isAfter(_tokenExpirationTime);
 
-  static String get accessToken {
-    return _accessToken;
-  }
-
-  static set accessToken(String accessToken) {
-    _accessToken = accessToken;
-    _tokenExpirationTime = JwtDecoder.getExpirationDate(accessToken).subtract(const Duration(hours: 1));
-    Globals.sentry.userContext = sentry.User(id: JwtDecoder.decode(accessToken)['sub']);
-  }
-
-  static CloudConfiguration get cloudConfiguration {
-    if (_cloudConfiguration == null && Globals.localStorage.containsKey(cloudConfigurationStorageKey)) {
-      var jsonConfiguration = Globals.localStorage.getString(OCFClient.cloudConfigurationStorageKey);
-      _cloudConfiguration = CloudConfiguration.fromJson(jsonConfiguration);
-    }
-    return _cloudConfiguration;
-  }
-
-  static set cloudConfiguration(CloudConfiguration cloudConfiguration) {
-    _cloudConfiguration = cloudConfiguration;
-  }
-
-  static Future<bool> initialize(String tokenResponse) async {
-    accessToken = _parseAccessToken(tokenResponse);
-    if (accessToken == null || cloudConfiguration == null)
+  static Future<bool> initialize(CloudConfiguration cloudConfiguration, String accessToken) async {
+    if (accessToken == null || cloudConfiguration == null) {
       return false;
+    }
+
+    var publicConfiguration = await _fetchPublicConfiguration('https://${cloudConfiguration.plgdAPIEndpoint}');
+    if (publicConfiguration == null) {
+      return false;
+    }
+
     try {
       await _nativeChannel.invokeMethod("initialize", <String, String> {
         'accessToken': accessToken,
-        'cloudConfiguration': _cloudConfiguration.rawJson
+        'cloudConfiguration': publicConfiguration,
+        'signingServerAddress': '${cloudConfiguration.plgdAPIEndpoint}:443'
       });
       _isInitialized = true;
+      ownerId = await getOwnerId();
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
-        exception: error,
+        error,
         stackTrace: stackTrace,
       );
     }
-    if (_isInitialized)
-      await _persistCloudConfiguration(cloudConfiguration);
+    if (_isInitialized) {
+      _accessToken = accessToken;
+      try {
+        _tokenExpirationTime = JwtDecoder.getExpirationDate(accessToken).subtract(const Duration(hours: 1));
+      } catch (error, stackTrace) {
+        _tokenExpirationTime = DateTime.utc(275760,09,13);
+        await Globals.sentry.captureException(
+          error,
+          stackTrace: stackTrace,
+        );
+      }
+    }
     return _isInitialized;
   }
 
-  static String _parseAccessToken(String tokenResponse) {
-    try {
-      Map<String, dynamic> jsonResponse = jsonDecode(tokenResponse);
-      return jsonResponse['access_token'] as String;
-    } on Exception catch (_) {
-      return null;
+  static Future<void> destroy() async {
+    if (!_isInitialized) {
+      return;
     }
-  }
-
-  static Future _persistCloudConfiguration(CloudConfiguration cloudConfiguration) async {
-    await Globals.localStorage.setString(OCFClient.cloudConfigurationStorageKey, cloudConfiguration.rawJson);
-  }
-
-  static void destroy() {
+    try {
+      _nativeChannel.invokeMethod('close');
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        error,
+        stackTrace: stackTrace,
+      );
+    }
     _isInitialized = false;
+  }
+
+  static Future<String> _fetchPublicConfiguration(String plgdApiEndpoint) async {
+    var httpClient = HttpClient()..badCertificateCallback = ((X509Certificate cert, String host, int port) => true);
+    var ioClient = new IOClient(httpClient);
+
+    try {
+      var response = await ioClient
+        .get(Uri.parse(plgdApiEndpoint + AppConstants.cloudConfigurationPath))
+        .timeout(const Duration(seconds: 10));
+      return response.body;
+    } on Exception catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        error,
+        stackTrace: stackTrace,
+      );
+    }
+    return null;
+  }
+
+  static Future<String> getOwnerId() async {
+    if (!_isInitialized) {
+      throw Exception("OCF Client not initialized");
+    }
+    try {
+      return await _nativeChannel.invokeMethod('getOwnerId');
+    } on PlatformException catch (error, stackTrace) {
+      await Globals.sentry.captureException(
+        error,
+        stackTrace: stackTrace,
+      );
+    }
+    return null;
   }
   
   static Future<List<Device>> discoverDevices() async {
@@ -84,14 +110,35 @@ class OCFClient {
       throw Exception("OCF Client not initialized");
     }
     try {
-      var devicesJSON = await _nativeChannel.invokeMethod('discoverDevices', 5);
+      var devicesJSON = await _nativeChannel.invokeMethod('discoverDevices', 10);
       var devicesJSONObjs = jsonDecode(devicesJSON) as List;
       return devicesJSONObjs.map((deviceJson) => Device.fromJson(deviceJson)).toList();
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
-        exception: error,
+        error,
         stackTrace: stackTrace,
       );
+    }
+    return null;
+  }
+
+  static Future<String> getResource(String deviceId, href) async {
+    if (!_isInitialized) {
+      throw Exception("OCF Client not initialized");
+    }
+    try {
+      var data =  await _nativeChannel.invokeMethod('getResource', <String, String> {
+        'deviceID': deviceId,
+        'href': href
+      });
+      return data;
+    } on PlatformException catch (error, stackTrace) {
+      if (!error.message.contains('AccessDenied')) {
+        await Globals.sentry.captureException(
+          error,
+          stackTrace: stackTrace,
+        );
+      }
     }
     return null;
   }
@@ -104,11 +151,11 @@ class OCFClient {
     try {
       return await _nativeChannel.invokeMethod<String>('ownDevice', <String, String> {
         'deviceID': deviceID,
-        'accessToken': accessToken
+        'accessToken': _accessToken
       });
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
-        exception: error,
+        error,
         stackTrace: stackTrace,
       );
     }
@@ -126,26 +173,27 @@ class OCFClient {
       return true;
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
-        exception: error,
+        error,
         stackTrace: stackTrace,
       );
     }
     return false;
   }
 
-  static Future<bool> onboardDevice(String deviceID, String authCode) async {
+  static Future<bool> onboardDevice(CloudConfiguration cloudConfiguration, String deviceID, String authCode) async {
     if (!_isInitialized) {
       throw("OCF Client not initialized");
     }
     try {
       await _nativeChannel.invokeMethod('onboardDevice', <String, String> {
         'deviceID': deviceID,
-        'authCode': authCode ?? ""
+        'authCode': authCode ?? "",
+        'authorizationProvider': cloudConfiguration.deviceAuthProvider
       });
       return true;
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
-        exception: error,
+        error,
         stackTrace: stackTrace,
       );
     }
@@ -163,70 +211,10 @@ class OCFClient {
       return true;
     } on PlatformException catch (error, stackTrace) {
       await Globals.sentry.captureException(
-        exception: error,
+        error,
         stackTrace: stackTrace,
       );
     }
     return false;
-  }
-
-  static Widget getTokenRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) =>
-     _getOAuthWidget(cloudConfiguration?.accessTokenUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed, onError);
-
-  static Widget getCodeRequestWidget(BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) =>
-    _getOAuthWidget(cloudConfiguration?.authCodeUrl, context, visible, tryInBackground, onCompleted, onLoginPromtDismissed, onError);
-
-  static Widget _getOAuthWidget(String actionUrl, BuildContext context, bool visible, bool tryInBackground, Function onCompleted, Function onLoginPromtDismissed, Function onError) {
-    return Visibility(
-      visible: visible,
-      maintainState: tryInBackground,
-      child: OAuthHandler(
-        authUrl: actionUrl,
-        promptForCredentials: () => _showLoginModal(actionUrl, context, onCompleted, onLoginPromtDismissed, onError),
-        authCompleted: onCompleted,
-        errorOccured: onError
-      )
-    );
-  }
-
-  static void _showLoginModal(String actionUrl, BuildContext context, Function(String) onCompleted, Function onLoginPromtDismissed, Function onError) {
-    showModalBottomSheet<String> (
-      isScrollControlled: true,
-      context: context,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.95,
-        child: Container(
-          margin: const EdgeInsets.only(top: 5, left: 15, right: 15),
-          child: Stack(
-            alignment: AlignmentDirectional.topCenter,
-            children: [
-              Container(
-                height: 3,
-                width: 40,
-                decoration: BoxDecoration(
-                  color: Colors.black38,
-                  borderRadius: BorderRadius.all(Radius.circular(50))
-                )
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 20),
-                child: OAuthHandler(
-                  authUrl: actionUrl,
-                  authCompleted: (data) {
-                    onCompleted(data);
-                    Navigator.of(context).pop('true'); // nullable boolean available only as an experimental feature
-                  },
-                  errorOccured: onError
-                )
-              )
-            ]
-          )
-        )
-      )
-    ).then((String isAutoClosed) {
-      if (isAutoClosed != 'true') {
-        onLoginPromtDismissed();
-      }
-    });
   }
 }

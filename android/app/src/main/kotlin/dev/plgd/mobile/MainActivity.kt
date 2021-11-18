@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "plgd.dev/client"
-    private var sdkClient: ocfclient.Ocfclient_? = null;
+    private var sdkClient: Ocfclient.Ocfclient_? = null;
     private val _mainScope = CoroutineScope(Dispatchers.Main)
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -21,7 +21,10 @@ class MainActivity: FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "initialize" -> this.initializeOCFClient(call, result)
+                "close" -> this.closeOCFClient(result)
+                "getOwnerId" -> this.getOwnerId(result)
                 "discoverDevices" -> this.discoverDevices(call, result)
+                "getResource" -> this.getResource(call, result)
                 "ownDevice" -> this.ownDevice(call, result)
                 "setAccessForCloud" -> this.setAccessForCloud(call, result)
                 "onboardDevice" -> this.onboardDevice(call, result)
@@ -34,15 +37,42 @@ class MainActivity: FlutterActivity() {
     private fun initializeOCFClient(call: MethodCall, result: MethodChannel.Result) {
         var accessToken = call.argument<String>("accessToken");
         var cloudConfiguration = call.argument<String>("cloudConfiguration")
+        var signingServerAddress = call.argument<String>("signingServerAddress")
         _mainScope.launch {
             try {
-                sdkClient = ocfclient.Ocfclient_()
+                sdkClient = Ocfclient.Ocfclient_()
                 withContext(Dispatchers.IO) {
-                    sdkClient!!.initialize(accessToken, cloudConfiguration)
+                    sdkClient!!.initialize(accessToken, cloudConfiguration, signingServerAddress)
                 }
                 result.success(true)
             } catch (e: Exception) {
                 sdkClient = null
+                result.error("-1", e.message, "")
+            }
+        }
+    }
+
+    private fun closeOCFClient(result: MethodChannel.Result) {
+        _mainScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    sdkClient!!.close()
+                }
+                result.success(true)
+            } catch (e: Exception) {
+                result.error("-1", e.message, "")
+            }
+        }
+    }
+
+    private fun getOwnerId(result: MethodChannel.Result) {
+        _mainScope.launch {
+            try {
+                var ownerId = withContext(Dispatchers.IO) {
+                    sdkClient!!.getOwnerID()
+                }
+                result.success(ownerId)
+            } catch (e: Exception) {
                 result.error("-1", e.message, "")
             }
         }
@@ -56,6 +86,21 @@ class MainActivity: FlutterActivity() {
                     sdkClient!!.discover(discoveryTimeout.toLong())
                 }
                 result.success(devices)
+            } catch (e: Exception) {
+                result.error("-1", e.message, "")
+            }
+        }
+    }
+
+    private fun getResource(call: MethodCall, result: MethodChannel.Result) {
+        var deviceId = call.argument<String>("deviceID")
+        var href = call.argument<String>("href")
+        _mainScope.launch {
+            try {
+                var resourceContent = withContext(Dispatchers.IO) {
+                    sdkClient!!.getResource(deviceId, href)
+                }
+                result.success(resourceContent)
             } catch (e: Exception) {
                 result.error("-1", e.message, "")
             }
@@ -94,10 +139,12 @@ class MainActivity: FlutterActivity() {
     private fun onboardDevice(call: MethodCall, result: MethodChannel.Result) {
         var deviceId = call.argument<String>("deviceID")
         var authCode = call.argument<String>("authCode")
+        var authorizationProvider = call.argument<String>("authorizationProvider")
+
         _mainScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    sdkClient!!.onboardDevice(deviceId, authCode)
+                    sdkClient!!.onboardDevice(deviceId, authCode, authorizationProvider)
                 }
                 result.success(true)
             } catch (e: Exception) {

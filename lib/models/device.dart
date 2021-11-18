@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:client/services/ocfClient.dart';
+
 class Device {
   String id;
   List<String> resourceTypes;
@@ -6,9 +10,8 @@ class Device {
   String manufacturerName;
   String modelNumber;
   bool isSecured;
+  bool isOwned;
   Ownership ownership;
-  String ownershipStatus;
-  CloudResourceConfiguration cloudConfiguration;
   List<Resources> resources;
 
   Device(
@@ -20,18 +23,25 @@ class Device {
       this.modelNumber,
       this.isSecured,
       this.ownership,
-      this.ownershipStatus,
-      this.cloudConfiguration,
+      this.isOwned,
       this.resources});
 
-  bool isOwnedBy(String ownerId) {
-    if (!this.isSecured || !this.ownership.owned) {
+  bool isOwnedByMe() {
+    if (!this.isSecured || this.ownership == null || !this.ownership.owned) {
       return false;
     }
-    if (this.ownership.deviceOwner == ownerId) {
-      return false;
+    if (this.ownership.deviceOwner == OCFClient.ownerId) {
+      return true;
     }
-    return true;
+    return false;
+  }
+
+  Future<void> loadOwnership() async {
+    var content = await OCFClient.getResource(this.id, '/oic/sec/doxm');
+    if (content != null && content.isNotEmpty) {
+      var data = jsonDecode(content);
+      this.ownership = Ownership.fromJson(data);
+    }
   }
 
   Device.fromJson(Map<String, dynamic> json) {
@@ -45,8 +55,7 @@ class Device {
     }
     isSecured = json['IsSecured'];
     ownership = json['Ownership'] != null ? new Ownership.fromJson(json['Ownership']) : null;
-    ownershipStatus = json['OwnershipStatus'];
-    cloudConfiguration = json['Details'] != null ? new CloudResourceConfiguration.fromJson(json['Details']) : null;
+    isOwned = json['OwnershipStatus'] != 'readytobeowned';
     if (json['Resources'] != null) {
       resources = new List<Resources>();
       json['Resources'].forEach((v) {
@@ -92,27 +101,9 @@ class Ownership {
     instanceID = json['id'];
     supportedCredentialTypes = json['sct'];
     selectedOwnerTransferMethod = json['oxmsel'];
-    interfaces = json['if'].cast<String>();
-    resourceTypes = json['rt'].cast<String>();
+    interfaces = json['if']?.cast<String>();
+    resourceTypes = json['rt']?.cast<String>();
   }
-}
-
-class CloudResourceConfiguration {
-	String authorizationProvider;
-	String cloudID;
-	String cloudURL;
-	int lastErrorCode;
-	String provisioningStatus;
-
-	CloudResourceConfiguration({this.authorizationProvider, this.cloudID, this.cloudURL, this.lastErrorCode, this.provisioningStatus});
-
-	CloudResourceConfiguration.fromJson(Map<String, dynamic> json) {
-		authorizationProvider = json['apn'];
-		cloudID = json['sid'];
-		cloudURL = json['cis'];
-		lastErrorCode = json['clec'];
-		provisioningStatus = json['cps'];
-	}
 }
 
 class Resources {
